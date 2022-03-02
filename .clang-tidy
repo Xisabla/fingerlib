@@ -1,0 +1,13 @@
+Checks: >
+  -*,
+  bugprone-*,
+  cppcoreguidelines-*,
+  google-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  llvm-header-guard,
+  llvm-include-order,
+  clang-analyzer-cplusplus.InnerPointer
