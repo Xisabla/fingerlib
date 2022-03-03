@@ -58,14 +58,6 @@ static const std::map<std::string, std::string> ACCPTCHAR = {
     {"iso-8859-1", "is"}
 };
 
-static const std::map<std::string, std::string> FEATURESET = {
-    {"gzip", "gz"},
-    {"deflate", "de"},
-    {"compress", "co"},
-    {"http", "ht"},
-    {"trailers", "tr"},
-};
-
 static const std::vector<std::map<int, std::string>> FEATURESET = {
     {
         {1, "s"},
