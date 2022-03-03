@@ -17,7 +17,7 @@ TEST_GROUP(Basic) {};
 TEST(Basic, EmptyFingerprint) {
     HTTPRequest req("http://hello.world", "GET");
 
-    auto fp = fingerprint(req);
+    auto fp = uri_fingerprint(req.uri);
 
     STRCMP_EQUAL(fp.c_str(), "");
 }

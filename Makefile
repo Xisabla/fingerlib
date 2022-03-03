@@ -1,5 +1,5 @@
 CXX			= g++
-CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb3
+CFLAGS 		= -lcurl -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb3
 
 ifeq ($(VERBOSE), 1)
 	Q =

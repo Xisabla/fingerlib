@@ -4,6 +4,7 @@ Checks: >
   performance-*,
   portability-*,
   readability-*,
+  -readability-magic-numbers,
   llvm-header-guard,
   llvm-include-order,
   clang-analyzer-cplusplus.InnerPointer
