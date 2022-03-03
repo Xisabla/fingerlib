@@ -1,2 +1,29 @@
 # fingerlib
-C++ fingerprint generation and distance computation
+
+HTTP Fingerprint generation and distance computation library in C++
+
+## Requirements
+
+- [`clang-format`](https://clang.llvm.org/docs/ClangFormat.html) & [`clang-tidy`](https://clang.llvm.org/extra/clang-tidy/) for code formatting
+- [`cpputest`](https://cpputest.github.io/) as test framework
+
+## Getting started
+
+### Building the library
+
+```bash
+make
+```
+
+The library should be located in `out/` as `out/fingerlib.so`
+
+### Using the library
+
+```cpp
+#include "include/finger/fingerprint.hpp"
+
+int main() {
+    // Computes and print the fingerprint
+    std::cout << fingerprint({ ... }) << std::endl;
+}
+```
