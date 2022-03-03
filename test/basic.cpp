@@ -7,16 +7,14 @@
  */
 #include <finger/fingerprint.hpp>
 #include <finger/utils.hpp>
-#include <iostream>
 
-int main() {
-    hello();
+#include <CppUTest/CommandLineTestRunner.h>
+#include <CppUTest/TestHarness.h>
 
-    try {
-        throw BadReportmodeVariable();
-    } catch(BadReportmodeVariable &e) {
-        std::cerr << e.what() << std::endl;
-    }
+TEST_GROUP(FirstTestGroup) { };
 
-    return 0;
+TEST(FirstTestGroup, FirstTest) { CHECK(true); }
+
+int main(int argc, char** argv) {
+    CommandLineTestRunner::RunAllTests(argc, argv);
 }

@@ -46,7 +46,7 @@ $(OBJ)/%.o: $(SRC)/%.cpp $(OBJ)
 # > Tests
 $(TEST)/bin/%: $(TEST)/%.cpp $(OUT)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $< $(OBJS) -o $@
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $< $(OBJS) -o $@ -lCppUTest
 
 test: $(OUT) $(TESTBIN) $(TESTBINS)
 	@for test in $(TESTBINS);						\
