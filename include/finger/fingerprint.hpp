@@ -32,21 +32,26 @@
 
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
-//                                       Methods                                        //
+//                                   Data Structures                                    //
 //                                                                                      //
 //--------------------------------------------------------------------------------------//
 
 struct HTTPRequest {
-    // TODO: Write content
+    std::string uri;
+    std::string method;
+
+    HTTPRequest(std::string uri, std::string method): uri(uri), method(method) { }
 };
 
-/**
- * @brief Simple testing method, prints "hello world"
- */
-void hello();
+//--------------------------------------------------------------------------------------//
+//                                                                                      //
+//                                       Methods                                        //
+//                                                                                      //
+//--------------------------------------------------------------------------------------//
+
 
 /**
- * @brief Computes a fingerprint from an HTTP Request, is an adapted version of hfinger give_fing
+ * @brief Computes a fingerprint from an HTTP Request
  * method
  *
  * @ref https://github.com/CERT-Polska/hfinger/blob/master/hfinger/uri_reader.py#L53
@@ -54,6 +59,8 @@ void hello();
  * @return std::string The computed fingerprint
  */
 std::string fingerprint(HTTPRequest req);
+
+/* std::string uri_fingerprint(std::string uri); */
 
 //--------------------------------------------------------------------------------------//
 //                                                                                      //

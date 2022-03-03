@@ -8,13 +8,19 @@
 #include <finger/fingerprint.hpp>
 #include <finger/utils.hpp>
 
+// clang-format off
 #include <CppUTest/CommandLineTestRunner.h>
 #include <CppUTest/TestHarness.h>
+// clang-format on
 
-TEST_GROUP(FirstTestGroup) { };
+TEST_GROUP(Basic) {};
 
-TEST(FirstTestGroup, FirstTest) { CHECK(true); }
+TEST(Basic, EmptyFingerprint) {
+    HTTPRequest req("http://hello.world", "GET");
 
-int main(int argc, char** argv) {
-    CommandLineTestRunner::RunAllTests(argc, argv);
+    auto fp = fingerprint(req);
+
+    STRCMP_EQUAL(fp.c_str(), "");
 }
+
+int main(int argc, char** argv) { CommandLineTestRunner::RunAllTests(argc, argv); }
