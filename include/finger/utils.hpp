@@ -39,14 +39,38 @@ std::map<std::string, int> getCounter(const std::vector<std::string>& items) {
  * @param delimiter The delimiter to split the string by
  * @return A vector containing each segment of the split string
  */
-std::vector<std::string> split(const std::string& str, char delimiter) {
+std::vector<std::string> split(std::string str, const std::string& delimiter) {
     std::vector<std::string> tokens;
+    size_t pos = 0;
     std::string token;
-    std::stringstream tokenStream(str);
-    while (std::getline(tokenStream, token, delimiter)) {
+    while ((pos = str.find(delimiter)) != std::string::npos) {
+        token = str.substr(0, pos);
         tokens.push_back(token);
+        str.erase(0, pos + delimiter.length());
     }
+    tokens.push_back(str);
     return tokens;
+}
+
+/**
+ * @brief Join a vector of strings into a string based on a delimiter
+ *
+ * @param strings The strings to be joined
+ * @param delimiter The delimiter to join the strings by
+ * @return std::string
+ */
+std::string join(std::vector<std::string> strings, const std::string& delimiter) {
+    std::stringstream ss;
+
+    for (size_t i = 0; i < strings.size(); i++) {
+        ss << strings[i];
+        if (i != strings.size() - 1) {
+            {
+                ss << delimiter;
+            }
+        }
+    }
+    return ss.str();
 }
 
 /**
@@ -56,6 +80,20 @@ std::string toUpper(const std::string& str) {
     std::string upper;
     for (const auto& item: str) {
         upper += toupper(item);
+    }
+    return upper;
+}
+
+/**
+ * @brief Lowercase a string
+ *
+ * @param str
+ * @return std::string
+ */
+std::string toLower(const std::string& str) {
+    std::string upper;
+    for (const auto& item: str) {
+        upper += tolower(item);
     }
     return upper;
 }

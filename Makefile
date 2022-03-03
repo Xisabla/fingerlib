@@ -73,4 +73,4 @@ clean:
 
 format:
 	$(Q)clang-format $(SRCS) $(HEADERS) -i --style=file
-	$(Q)clang-tidy $(SRCS) $(HEADERS) -fix -header-filter=include -- -Iinclude/ -std=c++17
+	$(Q)clang-tidy $(SRCS) $(HEADERS) -fix -header-filter=include/finger -- -Iinclude/ -std=c++17

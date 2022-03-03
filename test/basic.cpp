@@ -6,7 +6,6 @@
  * @date 2022-03-03
  */
 #include <finger/fingerprint.hpp>
-#include <finger/utils.hpp>
 
 // clang-format off
 #include <CppUTest/CommandLineTestRunner.h>
