@@ -13,7 +13,7 @@ OBJ			= obj
 OUTDIR		= out
 
 INCLUDES 	= -Iinclude
-HEADERS 	= $(wildcard include/**/*.hpp)
+HEADERS 	= $(wildcard include/finger/*.hpp)
 
 SRCS		= $(SRC)/fingerprint.cpp
 OBJS		= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
