@@ -13,6 +13,7 @@ OBJ			= obj
 OUTDIR		= out
 
 INCLUDES 	= -Iinclude
+HEADERS 	= $(wildcard include/**/*.hpp)
 
 SRCS		= $(SRC)/fingerprint.cpp
 OBJS		= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
@@ -71,5 +72,5 @@ clean:
 	$(Q)$(RM) -rf $(OBJ) $(OUTDIR) $(TEST)/bin
 
 format:
-	$(Q)clang-tidy $(SRCS) -fix -header-filter=include -- -Iinclude/ -std=c++17 2> /dev/null
-	$(Q)clang-format $(SRCS) -i --style=file 2> /dev/null
+	$(Q)clang-format $(SRCS) $(HEADERS) -i --style=file
+	$(Q)clang-tidy $(SRCS) $(HEADERS) -fix -header-filter=include -- -Iinclude/ -std=c++17
