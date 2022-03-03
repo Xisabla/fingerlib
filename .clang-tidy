@@ -1,10 +1,6 @@
 Checks: >
-  -*,
   bugprone-*,
-  cppcoreguidelines-*,
-  google-*,
-  misc-*,
-  modernize-*,
+  -bugprone-macro-parentheses,
   performance-*,
   portability-*,
   readability-*,

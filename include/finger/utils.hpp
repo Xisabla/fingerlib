@@ -1,5 +1,5 @@
-#ifndef INCLUDE_UTILS_HPP
-#define INCLUDE_UTILS_HPP
+#ifndef INCLUDE_FINGER_UTILS
+#define INCLUDE_FINGER_UTILS
 
 #include <map>
 #include <vector>
@@ -81,4 +81,4 @@ std::string strip(const std::string& str)
     return std::string(start_it, end_it.base());
 }
 
-#endif // INCLUDE_UTILS_HPP
+#endif /* INCLUDE_FINGER_UTILS */

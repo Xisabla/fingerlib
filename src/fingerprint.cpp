@@ -1,4 +1,4 @@
-#include <finger/fingerprint.h>
+#include <finger/fingerprint.hpp>
 #include <iostream>
 
 void hello() {

@@ -53,7 +53,7 @@ test: $(OUT) $(TESTBIN) $(TESTBINS)
 	 	echo "---------------------------->>";		\
 		echo $$test;								\
 		echo "---------------------------->>";		\
-		./$$test | sed -e 's/^/TEST | /';			\
+		./$$test;									\
 	 done
 
 # > Directories
