@@ -459,7 +459,9 @@ std::map<char, int> charOccurrences(const std::string& str) {
     return occurrences;
 }
 
-float log10length(const std::string& str) { return std::roundf(log10f(str.size()) * 10) / 10; }
+float log10length(const std::string& str) {
+    return std::roundf(log10f(str.size()) * 10) / 10; // NOLINT(readability-magic-numbers)
+}
 
 std::string floatPrecision(const float& v, const int& p) {
     std::stringstream ss;
