@@ -7,6 +7,10 @@ else
 	Q = @
 endif
 
+ifeq ($(DEBUG), 1)
+	CFLAGS += -DDEBUG
+endif
+
 # Sources
 SRC			= src
 OBJ			= obj

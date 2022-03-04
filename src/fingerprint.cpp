@@ -5,12 +5,11 @@
  * @version 1.0
  * @date 2022-03-03
  */
-#include <Poco/URI.h>
 #include <boost/algorithm/string.hpp>
+#include <filesystem>
 #include <finger/fingerprint.hpp>
 #include <iomanip>
 #include <map>
-#include <sstream>
 
 //--------------------------------------------------------------------------------------//
 //                               Fingerprint Computation                                //
@@ -19,55 +18,124 @@
 std::string fingerprint(const HTTPRequest& req) { return uri_fingerprint(req.uri); }
 
 std::string uri_fingerprint(const std::string& uri) {
-    std::stringstream uri_len;
+    float uri_length = log10length(uri);
 
-    Poco::URI uri_parsed(uri);
-
-    uri_len << std::fixed << std::setprecision(1) << log10length(uri);
-
+    // Skip if the URI is too short
     if (uri.size() <= 1) {
-        return uri_len.str() + "||||||";
+        return floatPrecision(uri_length, 1) + "||||||";
     }
 
-    return "";
+    std::stringstream fingerprint;
+
+    Poco::URI uri_parsed(uri);
+    std::string path = uri_parsed.getPath();
+
+    // Compute fields
+    URIDirectoryData uri_dir_data = compute_uri_directory_data(path);
+    URIQueryData uri_query_data = compute_uri_query_data(uri_parsed);
+    std::string ext = compute_uri_extention(path);
+
+    // Forge fingerprint
+    fingerprint << floatPrecision(uri_length, 1) << "|";
+    fingerprint << std::to_string(uri_dir_data.count) << "|"
+                << floatPrecision(uri_dir_data.avg_size_log, 1) << "|";
+    fingerprint << ext << "|";
+    fingerprint << floatPrecision(log10f(uri_query_data.size), 1) << "|"
+                << std::to_string(uri_query_data.count) << "|"
+                << floatPrecision(uri_query_data.avg_size_log, 1);
+
+    return fingerprint.str();
 }
 
 // ---- Submethods -----------------------------------------------------------------------
 
-float entropy(const std::string& str) {
-    float entropy = 0;
+URIDirectoryData compute_uri_directory_data(const std::string& path) {
+    URIDirectoryData res = { 0, .0, .0 };
+    std::vector<std::string> tokenized_path;
+    boost::split(tokenized_path, path, boost::is_any_of("/"));
 
-    const auto occurrences = charOccurrences(str);
+    // Remove first element of tokenized_path as it is empty
+    tokenized_path.erase(tokenized_path.begin());
 
-    for (const auto& item: occurrences) {
-        float p = item.second / static_cast<float>(str.size());
-        entropy += p * std::log2f(p);
-    }
+    res.count = tokenized_path.size();
 
-    // return -entropy;
-    return std::roundf((-entropy) * 10) / 10;
+    if (res.count == 0) return res;
+
+    // Compute average directory size
+    for (auto& dir: tokenized_path) res.avg_size += dir.size();
+    res.avg_size = res.avg_size / res.count;
+
+    // Convert to log10
+    res.avg_size_log = log10f(res.avg_size);
+
+    return res;
 }
 
-float log10length(const std::string& str) { return std::roundf(log10f(str.size()) * 10) / 10; }
+URIQueryData compute_uri_query_data(const Poco::URI& uri) {
+    URIQueryData res = { 0, 0, .0, .0 };
 
-bool isHeaderCapitalized(const std::string& header) {
-    if (header.find('-') == std::string::npos) {
-        return isupper(header[0]) == 0;
-    }
+    std::string query = uri.getQuery();
+    auto queries = uri.getQueryParameters();
 
-    // std::vector<std::string> fields = split(header, "-");
-    std::vector<std::string> fields;
+    res.size = query.size();
+    res.count = queries.size();
 
-    boost::split(fields, header, boost::is_any_of("-"));
+    if (res.count == 0) return res;
 
-    for (auto& field: fields) {
-        if (islower(field[0]) != 0) {
-            return false;
-        }
-    }
+    // Compute average query size
+    for (auto& q: queries) res.avg_size += q.second.size();
+    res.avg_size = res.avg_size / res.count;
 
-    return true;
+    // Convert to log10
+    res.avg_size_log = log10f(res.avg_size);
+
+    return res;
 }
+
+std::string compute_uri_extention(const std::string& path) {
+    namespace fs = std::filesystem;
+
+    std::string ext = fs::path(path).extension().string();
+
+    if (ext.empty()) return ext;
+
+    ext.erase(0, 1);
+
+    return ext;
+}
+
+// float entropy(const std::string& str) {
+//     float entropy = 0;
+
+//     const auto occurrences = charOccurrences(str);
+
+//     for (const auto& item: occurrences) {
+//         float p = item.second / static_cast<float>(str.size());
+//         entropy += p * std::log2f(p);
+//     }
+
+//     // return -entropy;
+//     return std::roundf((-entropy) * 10) / 10;
+// }
+
+// bool isHeaderCapitalized(const std::string& header) {
+//     if (header.find('-') == std::string::npos) {
+//         return isupper(header[0]) == 0;
+//     }
+
+//     // std::vector<std::string> fields = split(header, "-");
+//     std::vector<std::string> fields;
+
+//     boost::split(fields, header, boost::is_any_of("-"));
+
+//     for (auto& field: fields) {
+//         if (islower(field[0]) != 0) {
+//             return false;
+//         }
+//     }
+
+//     return true;
+// }
 
 // std::string getMethodVersion(const std::vector<std::string>& requestSplit) {
 //     std::string rVer;
@@ -379,6 +447,16 @@ std::map<char, int> charOccurrences(const std::string& str) {
     }
 
     return occurrences;
+}
+
+float log10length(const std::string& str) { return std::roundf(log10f(str.size()) * 10) / 10; }
+
+std::string floatPrecision(const float& v, const int& p) {
+    std::stringstream ss;
+
+    ss << std::fixed << std::setprecision(p) << v;
+
+    return ss.str();
 }
 
 // std::vector<std::string> split(std::string str, const std::string& delimiter) {
