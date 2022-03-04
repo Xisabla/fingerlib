@@ -1,5 +1,5 @@
 CXX			= g++
-CFLAGS 		= -lcurl -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb3
+CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb
 
 ifeq ($(VERBOSE), 1)
 	Q =
@@ -14,6 +14,9 @@ OUTDIR		= out
 
 INCLUDES 	= -Iinclude
 HEADERS 	= $(wildcard include/finger/*.hpp)
+
+LIBDIRS		= -L/usr/lib/x86_64-linux-gnu/
+LIBS 		= -lPocoFoundation
 
 SRCS		= $(SRC)/fingerprint.cpp
 OBJS		= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
@@ -37,16 +40,16 @@ all: format $(OUT)
 
 $(OUT): $(OBJS) $(OBJ) $(OUTDIR)
 	@echo "LINK $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) -shared -fPIC -o $(OUT) $(OBJS)
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) -shared -o $(OUT) $(OBJS)
 
 $(OBJ)/%.o: $(SRC)/%.cpp $(OBJ)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) -c $< -o $@
 
 # > Tests
 $(TEST)/bin/%: $(TEST)/%.cpp $(OUT)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $< $(OBJS) -o $@ -lCppUTest
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(OUT) $(LIBS) -o $@ -lCppUTest
 
 test: $(OUT) $(TESTBIN) $(TESTBINS)
 	@for test in $(TESTBINS);						\

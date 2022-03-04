@@ -5,8 +5,8 @@
  * @version 1.0
  * @date 2022-03-03
  */
+#include <Poco/URI.h>
 #include <boost/algorithm/string.hpp>
-#include <curl/curl.h>
 #include <finger/fingerprint.hpp>
 #include <iomanip>
 #include <map>
@@ -16,10 +16,12 @@
 //                               Fingerprint Computation                                //
 //--------------------------------------------------------------------------------------//
 
-std::string fingerprint(const HTTPRequest& req) { return ""; }
+std::string fingerprint(const HTTPRequest& req) { return uri_fingerprint(req.uri); }
 
 std::string uri_fingerprint(const std::string& uri) {
     std::stringstream uri_len;
+
+    Poco::URI uri_parsed(uri);
 
     uri_len << std::fixed << std::setprecision(1) << log10length(uri);
 
