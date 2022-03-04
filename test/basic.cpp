@@ -2,7 +2,7 @@
  * @file basic.cpp
  * @author Gautier Miquet
  * @brief Very first and basic test
- * @version 1.0
+ * @version 1.1
  * @date 2022-03-03
  */
 #include <finger/fingerprint.hpp>

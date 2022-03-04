@@ -2,7 +2,7 @@
  * @file fingerprint.cpp
  * @author Gautier Miquet
  * @brief Implementation of HTTP Fingerprinting methods
- * @version 1.0
+ * @version 0.2
  * @date 2022-03-03
  */
 #include <boost/algorithm/string.hpp>
@@ -28,7 +28,7 @@ std::string uri_fingerprint(const std::string& uri) {
     std::stringstream fingerprint;
 
     Poco::URI uri_parsed(uri);
-    std::string path = uri_parsed.getPath();
+    const std::string& path = uri_parsed.getPath();
 
     // Compute fields
     URIDirectoryData uri_dir_data = compute_uri_directory_data(path);
@@ -40,7 +40,7 @@ std::string uri_fingerprint(const std::string& uri) {
     fingerprint << std::to_string(uri_dir_data.count) << "|"
                 << floatPrecision(uri_dir_data.avg_size_log, 1) << "|";
     fingerprint << ext << "|";
-    fingerprint << floatPrecision(log10f(uri_query_data.size), 1) << "|"
+    fingerprint << floatPrecision(log10f(static_cast<float>(uri_query_data.size)), 1) << "|"
                 << std::to_string(uri_query_data.count) << "|"
                 << floatPrecision(uri_query_data.avg_size_log, 1);
 
@@ -59,11 +59,15 @@ URIDirectoryData compute_uri_directory_data(const std::string& path) {
 
     res.count = tokenized_path.size();
 
-    if (res.count == 0) return res;
+    if (res.count == 0) {
+        return res;
+    }
 
     // Compute average directory size
-    for (auto& dir: tokenized_path) res.avg_size += dir.size();
-    res.avg_size = res.avg_size / res.count;
+    for (auto& dir: tokenized_path) {
+        res.avg_size += dir.size();
+    }
+    res.avg_size = res.avg_size / static_cast<float>(res.count);
 
     // Convert to log10
     res.avg_size_log = log10f(res.avg_size);
@@ -80,11 +84,15 @@ URIQueryData compute_uri_query_data(const Poco::URI& uri) {
     res.size = query.size();
     res.count = queries.size();
 
-    if (res.count == 0) return res;
+    if (res.count == 0) {
+        return res;
+    }
 
     // Compute average query size
-    for (auto& q: queries) res.avg_size += q.second.size();
-    res.avg_size = res.avg_size / res.count;
+    for (auto& q: queries) {
+        res.avg_size += q.second.size();
+    }
+    res.avg_size = res.avg_size / static_cast<float>(res.count);
 
     // Convert to log10
     res.avg_size_log = log10f(res.avg_size);
@@ -97,7 +105,9 @@ std::string compute_uri_extention(const std::string& path) {
 
     std::string ext = fs::path(path).extension().string();
 
-    if (ext.empty()) return ext;
+    if (ext.empty()) {
+        return ext;
+    }
 
     ext.erase(0, 1);
 
