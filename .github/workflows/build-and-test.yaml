@@ -1,0 +1,20 @@
+name: Linux build
+
+on:
+  push:
+    branches: [xisabla/dev]
+  pull_requests:
+    branches: [xisabla/dev]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: make
+        run: make
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: make test
+        run: make test
