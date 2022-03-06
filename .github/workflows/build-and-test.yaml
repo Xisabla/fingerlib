@@ -10,10 +10,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Show version
-        run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
       - name: Check out repository code
         uses: actions/checkout@v2
+      - name: Show version
+        run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
       - name: Install dependencies
         run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
       - name: Build
