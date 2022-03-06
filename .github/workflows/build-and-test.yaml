@@ -1,10 +1,10 @@
-name: Linux build
+name: Build & test
 
 on:
   push:
-    branches: [main, dev, xisabla/dev]
+    branches: [main, dev, dev/*]
   pull_request:
-    branches: [main, dev, xisabla/dev]
+    branches: [main, dev, dev/*]
 
 jobs:
   test:
