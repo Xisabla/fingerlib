@@ -2,25 +2,21 @@ name: Linux build
 
 on:
   push:
-    branches: [xisabla/dev]
+    branches: [main, dev, xisabla/dev]
   pull_request:
-    branches: [xisabla/dev]
+    branches: [main, dev, xisabla/dev]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev
-      - name: Build
-        run: make VERBOSE=1
-
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Show version
+        run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
+      - name: Check out repository code
+        uses: actions/checkout@v2
       - name: Install dependencies
-        run: sudo apt install -y cpputest
-      - name: make test
+        run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
+      - name: Build
+        run: make VERBOSE=1
+      - name: Test
         run: make test DEBUG=1 VERBOSE=1
