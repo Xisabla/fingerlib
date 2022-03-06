@@ -10,11 +10,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: make
-        run: make
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev
+      - name: Build
+        run: make VERBOSE=1
 
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies
+        run: sudo apt install -y cpputest
       - name: make test
-        run: make test
+        run: make test DEBUG=1 VERBOSE=1
