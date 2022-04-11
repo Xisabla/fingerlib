@@ -27,12 +27,33 @@ std::string uri_fingerprint(const std::string& uri) {
 
     std::stringstream fingerprint;
 
-    Poco::URI uri_parsed(uri);
-    const std::string& path = uri_parsed.getPath();
+    // faup_options_new() is not thread safe, and should only be runned once per
+    // code, it is also the part that loads the cached publicsuffix.org file
+    faup_options_t* faup_opts;
+    faup_opts = faup_options_new();
+
+    // no need for the default csv output
+    faup_opts->output = FAUP_OUTPUT_NONE;
+
+    // modules slow down faup_init(), should be loaded only when needed
+    faup_opts->exec_modules = FAUP_MODULES_NOEXEC;
+
+    // fh is a pointer to a c struct that has, among others, all the positions
+    // where the uri splits in host, tld, etc.
+    faup_handler_t* fh;
+
+    // init the faup handler
+    fh = faup_init(faup_opts);
+
+    faup_decode(fh, uri.c_str(), uri.size());
+
+    // get path with faup
+    const std::string path =
+    uri.substr(faup_get_resource_path_pos(fh), faup_get_resource_path_size(fh));
 
     // Compute fields
     URIDirectoryData uri_dir_data = compute_uri_directory_data(path);
-    URIQueryData uri_query_data = compute_uri_query_data(uri_parsed);
+    URIQueryData uri_query_data = compute_uri_query_data(uri, fh);
     std::string ext = compute_uri_extention(path);
 
     // Forge fingerprint
@@ -75,11 +96,11 @@ URIDirectoryData compute_uri_directory_data(const std::string& path) {
     return res;
 }
 
-URIQueryData compute_uri_query_data(const Poco::URI& uri) {
+URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh) {
     URIQueryData res = { 0, 0, .0, .0 };
 
-    std::string query = uri.getQuery();
-    auto queries = uri.getQueryParameters();
+    std::string query = uri.substr(faup_get_query_string_pos(fh), faup_get_query_string_size(fh));
+    auto queries = get_query_parameters(query);
 
     res.size = query.size();
     res.count = queries.size();
@@ -112,6 +133,84 @@ std::string compute_uri_extention(const std::string& path) {
     ext.erase(0, 1);
 
     return ext;
+}
+
+void decode(const std::string& str, std::string& decodedStr) {
+    std::string::const_iterator it = str.begin();
+    std::string::const_iterator end = str.end();
+    const int OFFSET = 10;
+    const int HEX_OFFSET = 16;
+    while (it != end) {
+        int c = *it++;
+        if (c == '%') {
+            if (it == end) {
+                throw std::exception();
+            }
+            int hi = *it++;
+            if (it == end) {
+                throw std::exception();
+            }
+            int lo = *it++;
+            if (hi >= '0' && hi <= '9') {
+                c = hi - '0';
+            } else if (hi >= 'A' && hi <= 'F') {
+                c = hi - 'A' + OFFSET;
+            } else if (hi >= 'a' && hi <= 'f') {
+                c = hi - 'a' + OFFSET;
+            } else {
+                throw std::exception();
+            }
+            c *= HEX_OFFSET;
+            if (lo >= '0' && lo <= '9') {
+                c += lo - '0';
+            } else if (lo >= 'A' && lo <= 'F') {
+                c += lo - 'A' + OFFSET;
+            } else if (lo >= 'a' && lo <= 'f') {
+                c += lo - 'a' + OFFSET;
+            } else {
+                throw std::exception();
+            }
+        }
+        decodedStr += std::to_string(c);
+    }
+}
+
+std::vector<std::pair<std::string, std::string>> get_query_parameters(const std::string& query) {
+    std::vector<std::pair<std::string, std::string>> result;
+    std::string::const_iterator it(query.begin());
+    std::string::const_iterator end(query.end());
+    while (it != end) {
+        std::string name;
+        std::string value;
+        while (it != end && *it != '=' && *it != '&') {
+            if (*it == '+') {
+                name += ' ';
+            } else {
+                name += *it;
+            }
+            ++it;
+        }
+        if (it != end && *it == '=') {
+            ++it;
+            while (it != end && *it != '&') {
+                if (*it == '+') {
+                    value += ' ';
+                } else {
+                    value += *it;
+                }
+                ++it;
+            }
+        }
+        std::string decodedName;
+        std::string decodedValue;
+        decode(name, decodedName);
+        decode(value, decodedValue);
+        result.push_back(std::make_pair(decodedName, decodedValue));
+        if (it != end && *it == '&') {
+            ++it;
+        }
+    }
+    return result;
 }
 
 // float entropy(const std::string& str) {
