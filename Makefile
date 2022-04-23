@@ -29,6 +29,7 @@ OUT			= $(OUTDIR)/fingerlib.so
 
 # Test
 TEST		= test
+TESTCOMMONS = $(TEST)/common/dataset.cpp
 TESTBIN		= $(TEST)/bin
 TESTS		= $(wildcard $(TEST)/*.cpp)
 TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS))
@@ -51,9 +52,9 @@ $(OBJ)/%.o: $(SRC)/%.cpp $(OBJ)
 	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) -c $< -o $@
 
 # > Tests
-$(TEST)/bin/%: $(TEST)/%.cpp $(OUT)
+$(TEST)/bin/%: $(TEST)/%.cpp $(TESTCOMMONS) $(OUT)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(OUT) $(LIBS) -o $@ -lCppUTest
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(TESTCOMMONS) $(OUT) $(LIBS) -o $@ -lCppUTest
 
 test: $(OUT) $(TESTBIN) $(TESTBINS)
 	@for test in $(TESTBINS);						\
@@ -61,7 +62,7 @@ test: $(OUT) $(TESTBIN) $(TESTBINS)
 	 	echo "---------------------------->>";		\
 		echo $$test;								\
 		echo "---------------------------->>";		\
-		./$$test;									\
+		./$$test -v;									\
 	 done
 
 # > Directories
