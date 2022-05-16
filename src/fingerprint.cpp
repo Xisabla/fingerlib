@@ -177,7 +177,7 @@ void decode(const std::string& str, std::string& decodedStr) {
                 throw std::exception();
             }
         }
-        decodedStr += std::to_string(c);
+        decodedStr += c;
     }
 }
 
