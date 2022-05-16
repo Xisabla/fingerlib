@@ -9,7 +9,10 @@
 #ifndef FINGER_FINGERPRINT_HPP
 #define FINGER_FINGERPRINT_HPP
 
-#include <Poco/URI.h>
+#include <faup/decode.h>
+#include <faup/faup.h>
+#include <faup/options.h>
+#include <faup/output.h>
 #include <finger/configs.hpp>
 #include <json.hpp>
 #include <stdexcept>
@@ -140,6 +143,24 @@ std::string uri_fingerprint(const std::string& uri);
 // ---- Submethods -----------------------------------------------------------------------
 
 /**
+ * @brief Decodes a hexadecimally encoded string (adaptation of POCO::decode)
+ *
+ * @param str encoded string
+ * @param decodedStr decoded string
+ * @return void
+ */
+void decode(const std::string& str, std::string& decodedStr);
+
+/**
+ * @brief Parses query parameters and values from given query
+ *
+ * @param query
+ * @return std::vector <std::pair<std::string, std::string>> list of key-value pairs (parameters and
+ * their values)
+ */
+std::vector<std::pair<std::string, std::string>> get_query_parameters(const std::string& query);
+
+/**
  * @brief Computes the average length of the directory in the path, keeps in track the size of the
  * path and the average value in log10
  *
@@ -153,10 +174,11 @@ URIDirectoryData compute_uri_directory_data(const std::string& path);
  * @brief Computes the query string size and average value size in log10
  *
  * @param uri Parsed Poco URI
+ * @param faup_handler_t Faup handler containing parsed uri
  * @return URIQueryData The results containing the query string size, query count, average query
  * value size and average query value size in log10
  */
-URIQueryData compute_uri_query_data(const Poco::URI& uri);
+URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh);
 
 /**
  * @brief Computes the extension used in the URI from the path

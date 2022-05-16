@@ -2,21 +2,31 @@ name: Build & test
 
 on:
   push:
-    branches: [main, dev, dev/*]
+    branches: [main, dev, d/*]
   pull_request:
-    branches: [main, dev, dev/*]
+    branches: [main, dev, d/*]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository code
+      - name: "Check out repository code"
         uses: actions/checkout@v2
-      - name: Show version
+      - name: "Show version"
         run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
-      - name: Install dependencies
+      - name: "Install dependencies using apt"
         run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
-      - name: Build
+      - name: "Install faup dependency"
+        run: >
+          git clone https://github.com/stricaud/faup faup
+          && mkdir -p faup/build
+          && cd faup/build
+          && cmake ../
+          && make
+          && sudo make install
+          && sudo ldconfig
+          && ldd /usr/local/bin/faup
+      - name: "Run: Build"
         run: make VERBOSE=1
-      - name: Test
+      - name: "Run: Test"
         run: make test DEBUG=1 VERBOSE=1
