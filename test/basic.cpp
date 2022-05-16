@@ -33,4 +33,4 @@ TEST(Basic, URIFingerprintExt) {
     STRCMP_EQUAL("1.9|2|1.0|php|1.7|2|1.3", fp.c_str());
 }
 
-int main(int argc, char** argv) { CommandLineTestRunner::RunAllTests(argc, argv); }
+int main(int argc, char** argv) { return CommandLineTestRunner::RunAllTests(argc, argv); }
