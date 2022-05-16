@@ -65,6 +65,10 @@ std::string uri_fingerprint(const std::string& uri) {
                 << std::to_string(uri_query_data.count) << "|"
                 << floatPrecision(uri_query_data.avg_size_log, 1);
 
+    // Free pointers
+    faup_options_free(faup_opts);
+    faup_terminate(fh);
+
     return fingerprint.str();
 }
 
@@ -135,6 +139,8 @@ std::string compute_uri_extention(const std::string& path) {
     return ext;
 }
 
+// Function adapted from POCO library
+// https://github.com/pocoproject/poco/blob/9d1c428c861f2e5ccf09149bbe8d2149720c5896/Foundation/src/URI.cpp#L669
 void decode(const std::string& str, std::string& decodedStr) {
     std::string::const_iterator it = str.begin();
     std::string::const_iterator end = str.end();
@@ -175,6 +181,8 @@ void decode(const std::string& str, std::string& decodedStr) {
     }
 }
 
+// Function adapted from POCO library
+// https://github.com/pocoproject/poco/blob/9d1c428c861f2e5ccf09149bbe8d2149720c5896/Foundation/src/URI.cpp#L373
 std::vector<std::pair<std::string, std::string>> get_query_parameters(const std::string& query) {
     std::vector<std::pair<std::string, std::string>> result;
     std::string::const_iterator it(query.begin());
