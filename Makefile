@@ -20,7 +20,7 @@ INCLUDES 	= -Iinclude
 HEADERS 	= $(wildcard include/finger/*.hpp)
 
 LIBDIRS		= -L/usr/lib/x86_64-linux-gnu/
-LIBS 		= -lPocoFoundation
+LIBS 		= -lfaupl
 
 SRCS		= $(SRC)/fingerprint.cpp
 OBJS		= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))

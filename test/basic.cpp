@@ -49,4 +49,4 @@ TEST(Basic, URIFingerprint) {
     }
 }
 
-int main(int argc, char** argv) { CommandLineTestRunner::RunAllTests(argc, argv); }
+int main(int argc, char** argv) { return CommandLineTestRunner::RunAllTests(argc, argv); }
