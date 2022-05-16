@@ -24,7 +24,7 @@ jobs:
           && cmake ../
           && make
           && sudo make install
-          && ldconfig
+          && sudo ldconfig
           && ldd /usr/local/bin/faup
       - name: "Run: Build"
         run: make VERBOSE=1
