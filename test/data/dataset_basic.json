@@ -1,0 +1,11 @@
+{
+    "sets": {
+        "without_extension": [
+            { "uri": "/www.appinf.com:88/sample/anothersubdir/just_a_test/a?example-query=a&other=value#fra", "method": "GET", "fingerprint": "1.9|5|1.0||1.4|2|0.5" }
+        ],
+
+        "with_extension": [
+            { "uri": "/mutillidae/index.php?page=redirectandlog.php&forwardurl=http://www.evil.com", "method": "GET", "fingerprint": "1.9|2|1.0|php|1.7|2|1.3" }
+        ]
+    }
+}

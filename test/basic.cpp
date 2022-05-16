@@ -6,6 +6,7 @@
  * @date 2022-03-03
  */
 #include <finger/fingerprint.hpp>
+#include <test/dataset.hpp>
 
 // clang-format off
 #include <CppUTest/CommandLineTestRunner.h>
@@ -14,23 +15,38 @@
 
 TEST_GROUP(Basic) {};
 
-TEST(Basic, URIFingerprint) {
-    HTTPRequest req(
-    "/www.appinf.com:88/sample/anothersubdir/just_a_test/a?example-query=a&other=value#frag",
-    "GET");
+TEST(Basic, URIFingerprintExt) {
+    auto set = dataset_use("test/data/dataset_basic.json", { "sets", "with_extension" });
 
-    auto fp = uri_fingerprint(req.uri);
+    for (auto& entry: set) {
+        if (!dataset_contains(entry, { "uri", "fingerprint" })) {
+            continue;
+        }
 
-    STRCMP_EQUAL("1.9|5|1.0||1.4|2|0.5", fp.c_str());
+        std::string expect = entry["fingerprint"].get<std::string>();
+        std::string uri = entry["uri"].get<std::string>();
+
+        auto fp = uri_fingerprint(uri);
+
+        STRCMP_EQUAL(expect.c_str(), fp.c_str());
+    }
 }
 
-TEST(Basic, URIFingerprintExt) {
-    HTTPRequest req("/mutillidae/index.php?page=redirectandlog.php&forwardurl=http://www.evil.com",
-                    "GET");
+TEST(Basic, URIFingerprint) {
+    auto set = dataset_use("test/data/dataset_basic.json", { "sets", "without_extension" });
 
-    auto fp = uri_fingerprint(req.uri);
+    for (auto& entry: set) {
+        if (!dataset_contains(entry, { "uri", "fingerprint" })) {
+            continue;
+        }
 
-    STRCMP_EQUAL("1.9|2|1.0|php|1.7|2|1.3", fp.c_str());
+        std::string expect = entry["fingerprint"].get<std::string>();
+        std::string uri = entry["uri"].get<std::string>();
+
+        auto fp = uri_fingerprint(uri);
+
+        STRCMP_EQUAL(expect.c_str(), fp.c_str());
+    }
 }
 
 int main(int argc, char** argv) { return CommandLineTestRunner::RunAllTests(argc, argv); }
