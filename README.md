@@ -44,13 +44,13 @@ First build the docker image:
 
 ```bash
 cd server
-docker build . -t fingerlib-server
+docker build . -t fingerlib/server
 ```
 
 Then run it:
 
 ```bash
-docker run -p 8080:8080 -v "$(pwd)/out:/out" fingerlib-server
+docker run -p 8080:8080 -v "$(pwd)/out:/out" fingerlib/server
 ```
 
 OWASP Goat server will be running on http://127.0.0.1:8080/WebGoat/, pcap files will be available under `out` directory.
