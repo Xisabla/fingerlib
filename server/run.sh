@@ -5,8 +5,6 @@
 
 # Run tshark
 tshark -w /out/capture.pcap -i eth0 & 
-chown -R 1000:1000 /out
-chmod 777 /out/capture.pcap
 
 # Run webgoat
 java \
@@ -27,3 +25,6 @@ java \
     -Dwebgoat.port=8080 \
     -Dwebwolf.port=9090 \
     -jar webgoat.jar
+
+chown -R 1000:1000 /out
+chmod 777 /out/capture.pcap

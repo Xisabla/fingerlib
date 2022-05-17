@@ -8,10 +8,6 @@ RUN apt install -y tshark
 
 # Output directory
 RUN mkdir /out
-# Might be overkill
-RUN chown -R 1000:1000 /out
-RUN touch /out/capture.pcap
-RUN chmod 777 /out/capture.pcap 
 
 # Add entrypoint
 COPY run.sh /home/webgoat/run.sh
