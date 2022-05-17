@@ -72,6 +72,9 @@ std::string uri_fingerprint(const std::string& uri) {
     URIQueryData uri_query_data = compute_uri_query_data(uri, fh);
     D_PRINT("uri_query_data : " << uri_query_data.count);
     std::string ext = compute_uri_extention(path);
+    if (std::find(EXT.begin(), EXT.end(), ext) == EXT.end()) {
+        ext = "";
+    }
     D_PRINT("ext : " << ext);
 
     // Forge fingerprint
@@ -406,7 +409,7 @@ void decode(const std::string& str, std::string& decodedStr) {
                 throw std::exception();
             }
         }
-        decodedStr += std::to_string(c);
+        decodedStr += c;
     }
 }
 
@@ -515,14 +518,18 @@ std::string getHeaderOrder(const std::vector<std::string>& headers) {
         ss << std::hex << stol(fnv1a);
         headerCoded = ss.str();
 
+        if (headerLower == "origin") {
+            D_PRINT("AAAAAAAAAAH: " << header);
+        }
+
         if (HDRL.find(headerLower) != HDRL.end()) {
+            D_PRINT("Header found" << HDRL[headerLower]);
             if (getHeaderCase(header)) {
                 headerCoded = HDRL[headerLower];
             } else {
                 headerCoded = "!" + HDRL[headerLower];
             }
         }
-
         ret.emplace_back(headerCoded);
     }
 
