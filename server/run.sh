@@ -3,6 +3,8 @@
 
 # fingerlib-server entrypoint script
 
+chown -R root:root /out
+
 # Run tshark
 tshark -w /out/capture.pcap -i eth0 & 
 
