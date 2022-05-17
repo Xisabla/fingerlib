@@ -36,3 +36,6 @@ test/bin/*
 
 # Editors
 .vscode
+
+# Server
+server/out
