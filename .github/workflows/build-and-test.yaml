@@ -1,0 +1,22 @@
+name: Build & test
+
+on:
+  push:
+    branches: [main, dev, dev/*]
+  pull_request:
+    branches: [main, dev, dev/*]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Show version
+        run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
+      - name: Install dependencies
+        run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
+      - name: Build
+        run: make VERBOSE=1
+      - name: Test
+        run: make test DEBUG=1 VERBOSE=1

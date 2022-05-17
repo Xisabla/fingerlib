@@ -63,9 +63,11 @@
 struct HTTPRequest {
     std::string uri;
     std::string method;
+    std::string version;
+    std::vector<std::string> headers;
 
-    HTTPRequest(std::string uri, std::string method)
-    : uri(std::move(uri)), method(std::move(method)) { }
+    HTTPRequest(std::string uri, std::string method, std::string version, std::vector<std::string> headers)
+    : uri(std::move(uri)), method(std::move(method)), version(std::move(version)), headers(std::move(headers)) { }
 };
 
 /**
@@ -140,7 +142,25 @@ std::string fingerprint(const HTTPRequest& req);
  */
 std::string uri_fingerprint(const std::string& uri);
 
+/**
+ * @brief Computes the fingerprint from the headers, is part of the whole HTTP Request fingerprint
+ * 
+ * @param headers Request headers
+ * @return std::string The computed headers fingerprint
+ */
+std::string header_fingerprint(const std::vector<std::string>& headers);
+
 // ---- Submethods -----------------------------------------------------------------------
+
+std::string getHeaderValue(const std::string& header, const std::string& headerName, const std::map<std::string, std::string>& headerValueTable);
+
+std::string getContentType(const std::string& header);
+
+std::string getAcceptLanguageValue(const std::string& header);
+
+std::string getUaValue(const std::string& header);
+
+std::string fnv1a_32(const std::string& str);
 
 /**
  * @brief Decodes a hexadecimally encoded string (adaptation of POCO::decode)
@@ -206,23 +226,23 @@ std::string compute_uri_extention(const std::string& path);
 // nlohmann::json readConfig(const std::string& path);
 
 
-// /**
-//  * @brief Get the case of the header
-//  *
-//  * @return true If the header is in upper case
-//  * @return false Otherwise
-//  */
-// bool getHeaderCase(const std::string& header);
+/**
+ * @brief Get the case of the header
+ *
+ * @return true If the header is in upper case
+ * @return false Otherwise
+ */
+bool getHeaderCase(const std::string& header);
 
-// /**
-//  * @brief Get the method and version of the request in the form of "method|version"
-//  */
-// std::string getMethodVersion(const std::vector<std::string>& requestSplit);
+/**
+ * @brief Get the method and version of the request in the form of "method|version"
+ */
+std::string getMethodVersion(const std::string& method, const std::string& version);
 
-// /**
-//  * @brief Get the order of the headers
-//  */
-// std::string getHeaderOrder(const std::vector<std::string>& requestSplit);
+/**
+ * @brief Get the order of the headers
+ */
+std::string getHeaderOrder(const std::vector<std::string>& headers);
 
 // /**
 //  * @brief Get the User-Agent value of the header
