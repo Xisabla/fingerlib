@@ -5,6 +5,8 @@
 
 # Run tshark
 tshark -w /out/capture.pcap -i eth0 & 
+chown -R 1000:1000 /out
+chmod 777 /out/capture.pcap
 
 # Run webgoat
 java \

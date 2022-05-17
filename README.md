@@ -38,9 +38,7 @@ int main() {
 
 We use [OWASP webgoat](https://owasp.org/www-project-webgoat/) as test server to feed our dataset.
 
-The custom docker image also run tshark in background to capture requests
-
-**⚠️ The docker images runs under `root` user to ease usage of `tshark`, make sur to have the rights to `chown`/`chmod` mounted volumes**
+The custom docker image also runs `tshark` in background to capture requests
 
 First build the docker image:
 
