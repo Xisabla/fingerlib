@@ -15,10 +15,24 @@
 //                               Fingerprint Computation                                //
 //--------------------------------------------------------------------------------------//
 
-std::string fingerprint(const HTTPRequest& req) { return uri_fingerprint(req.uri); }
+std::string fingerprint(const HTTPRequest& req) {
+
+    D_PRINT("uri_fingerprint");
+    std::string uri_finger = uri_fingerprint(req.uri);
+    D_PRINT("method_fingerprint");
+    std::string method_finger = getMethodVersion(req.method, req.version);
+    D_PRINT("header_order");
+    std::string header_order = getHeaderOrder(req.headers);
+    D_PRINT("header_fingerprint");
+    std::string header_finger = header_fingerprint(req.headers);
+
+    return uri_finger + "|" + method_finger + "|" + header_order + "|" + header_finger + "|||";
+}
 
 std::string uri_fingerprint(const std::string& uri) {
+    D_PRINT("uri : " << uri);
     float uri_length = log10length(uri);
+    D_PRINT("uri_length : " << uri_length);
 
     // Skip if the URI is too short
     if (uri.size() <= 1) {
@@ -50,20 +64,36 @@ std::string uri_fingerprint(const std::string& uri) {
     // get path with faup
     const std::string path =
     uri.substr(faup_get_resource_path_pos(fh), faup_get_resource_path_size(fh));
+    D_PRINT("path : " << path);
 
     // Compute fields
     URIDirectoryData uri_dir_data = compute_uri_directory_data(path);
+    D_PRINT("uri_dir_data : " << uri_dir_data.count);
     URIQueryData uri_query_data = compute_uri_query_data(uri, fh);
+    D_PRINT("uri_query_data : " << uri_query_data.count);
     std::string ext = compute_uri_extention(path);
+    D_PRINT("ext : " << ext);
 
     // Forge fingerprint
     fingerprint << floatPrecision(uri_length, 1) << "|";
     fingerprint << std::to_string(uri_dir_data.count) << "|"
                 << floatPrecision(uri_dir_data.avg_size_log, 1) << "|";
     fingerprint << ext << "|";
-    fingerprint << floatPrecision(log10f(static_cast<float>(uri_query_data.size)), 1) << "|"
-                << std::to_string(uri_query_data.count) << "|"
-                << floatPrecision(uri_query_data.avg_size_log, 1);
+
+    if (
+        uri_query_data.size != 0 ||
+        uri_query_data.count != 0 ||
+        uri_query_data.avg_size != .0 ||
+        uri_query_data.avg_size_log != .0)
+    {
+        fingerprint << floatPrecision(log10f(static_cast<float>(uri_query_data.size)), 1) << "|"
+                    << std::to_string(uri_query_data.count) << "|"
+                    << floatPrecision(uri_query_data.avg_size_log, 1);
+    }
+    else
+    {
+        fingerprint << "||";
+    }
 
     // Free pointers
     faup_options_free(faup_opts);
@@ -72,7 +102,214 @@ std::string uri_fingerprint(const std::string& uri) {
     return fingerprint.str();
 }
 
+
+std::string header_fingerprint(const std::vector<std::string>& header_lines) {
+    D_PRINT("Header lines: " << header_lines.size());
+
+    std::vector<std::string> result;
+
+    // Compute fields
+    for (const std::string& reqline : header_lines) {
+        std::vector<std::string> tmpReqLine;
+        boost::split(tmpReqLine, reqline, boost::is_any_of(":"));
+        std::string headerLower = boost::to_lower_copy(tmpReqLine[0]);
+        D_PRINT("Header line: " << headerLower);
+        if (headerLower == "connection") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, CONN));
+        }
+        else if (headerLower == "accept-encoding") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, AE));
+        }
+        else if (headerLower == "content-encoding") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, CONTENC));
+        }
+        else if (headerLower == "cache-control") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, CACHECONT));
+        }
+        else if (headerLower == "te") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, TE));
+        }
+        else if (headerLower == "accept-charset") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, ACCPTCHAR));
+        }
+        else if (headerLower == "content-type") {
+            result.emplace_back(getContentType(reqline));
+        }
+        else if (headerLower == "accept") {
+            result.emplace_back(getHeaderValue(reqline, headerLower, ACCPT));
+        }
+        else if (headerLower == "accept-language") {
+            // No trim for this header
+            result.emplace_back(getAcceptLanguageValue(reqline));
+        }
+        else if (headerLower == "user-agent") {
+            result.emplace_back(getUaValue(reqline));
+        }
+        else {
+            D_PRINT("Unknown header: " << headerLower);
+        }
+    }
+    return boost::join(result, "/");
+}
+
 // ---- Submethods -----------------------------------------------------------------------
+
+std::string fnv1a_32(const std::string& str) {
+    // FNV-1a 32bit hash
+    // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
+    // https://tools.ietf.org/html/draft-eastlake-fnv-03
+    
+    uint32_t hash = 2166136261U;
+
+    for (const char& c : str) {
+        hash ^= c;
+        hash *= 16777619U;
+    }
+
+    return std::to_string(hash);
+}
+
+std::string getHeaderValue(const std::string& header, const std::string& headerName, const std::map<std::string, std::string>& headerValueTable) {
+    std::vector<std::string> header_values;
+    boost::split(header_values, header, boost::is_any_of(":"));
+    std::string val = header_values[1];
+    boost::trim(val);
+    D_PRINT("Header value: " << val);
+
+    std::string header_coded = HDRL[headerName] + ":";
+
+    std::vector<std::string> res;
+    if (val.find(",") != std::string::npos) {
+        // simple splitting of compund values
+        if (val.find(";q=") != std::string::npos) {
+            // we do not tokenize compound values with quality parameters at this moment
+            std::stringstream str;
+            str << std::hex << stol(fnv1a_32(val));
+            return header_coded + str.str();
+        }
+
+        std::vector<std::string> t;
+        boost::split(t, val, boost::is_any_of(","));
+        for (auto& s : t) {
+            boost::trim(s);
+            D_PRINT("    - " << s);
+        }
+
+        for (const std::string& j : t) {
+            std::stringstream str;
+            str << std::hex << stol(fnv1a_32(j));
+            if (j == "" || headerValueTable.find(j) == headerValueTable.end())
+                return header_coded + str.str();
+            res.emplace_back(headerValueTable.at(j));            
+        }
+    } 
+    else {
+        std::string k;
+
+        if (headerValueTable.find(val) != headerValueTable.end()) {
+            k = headerValueTable.at(val);
+        } else {
+            std::stringstream str;
+            str << std::hex << stol(fnv1a_32(val));
+            k = str.str();
+        }
+        res.emplace_back(k);
+    }
+    D_PRINT("Result : " << header_coded + boost::join(res, ","));
+    return header_coded + boost::join(res, ",");
+}
+
+std::string getContentType(const std::string& header) {
+    std::vector<std::string> header_values;
+    boost::split(header_values, header, boost::is_any_of(":"));
+    std::string val = header_values[1];
+    boost::trim(val);
+
+    std::string header_coded = HDRL["content-type"] + ":";
+    std::vector<std::string> res;
+
+    if (val.find(",") != std::string::npos) {
+        std::vector<std::string> vals;
+
+        if (val.find(", ") != std::string::npos) {
+            boost::split(vals, val, boost::is_any_of(", "));
+        } else {
+            boost::split(vals, val, boost::is_any_of(","));
+        }
+
+        for (const std::string& itv : vals) {
+            std::stringstream str;
+            str << std::hex;
+
+            if (itv.find(";") != std::string::npos) {
+                if (itv.find("boundary=") != std::string::npos) {
+                    int boundIndex = itv.find("boundary=");
+                    int boundOffset = std::strlen("boundary=");
+                    std::string valBound = itv.substr(boundIndex + boundOffset);
+                    str << stol(fnv1a_32(valBound));
+                    return header_coded + str.str();
+                } else {
+                    str << stol(fnv1a_32(itv));
+                    res.emplace_back(str.str());
+                }
+            } else {
+                str << stol(fnv1a_32(itv));
+                std::string k = str.str();
+                if (CONTENTTYPE.find(itv) != CONTENTTYPE.end())
+                    k = CONTENTTYPE.at(itv);
+                res.emplace_back(k);
+            }
+        }
+    } 
+    else {
+        std::stringstream str;
+        str << std::hex;
+        if (val.find(";") != std::string::npos) {
+            if (val.find("boundary=") == std::string::npos) {
+                str << stol(fnv1a_32(val));
+                return header_coded + str.str();
+            }
+            int boundIndex = val.find("boundary=");
+            int boundOffset = std::strlen("boundary=");
+            std::string valBound = val.substr(boundIndex + boundOffset);
+            str << stol(fnv1a_32(valBound));
+            return header_coded + str.str();
+        } else {
+            str << stol(fnv1a_32(val));
+            std::string k = str.str();
+            if (CONTENTTYPE.find(val) != CONTENTTYPE.end())
+                k = CONTENTTYPE.at(val);
+
+            res.emplace_back(k);
+        }
+    }
+    return header_coded + boost::join(res, ",");
+}
+
+std::string getAcceptLanguageValue(const std::string& header) {
+    std::vector<std::string> header_values;
+    boost::split(header_values, header, boost::is_any_of(":"));
+    std::string val = header_values[1];
+
+    D_PRINT("Header value: " << val);
+
+    std::string name = HDRL["accept-language"];
+    std::stringstream str;
+    str << name << ":" << std::hex << stol(fnv1a_32(val));
+    return str.str();
+}
+
+std::string getUaValue(const std::string& header) {
+    std::vector<std::string> header_values;
+    boost::split(header_values, header, boost::is_any_of(":"));
+    std::string val = header_values[1];
+    boost::trim(val);
+
+    std::string name = HDRL["user-agent"];
+    std::stringstream str;
+    str << name << ":" << std::hex << stol(fnv1a_32(val));
+    return str.str();
+}
 
 URIDirectoryData compute_uri_directory_data(const std::string& path) {
     URIDirectoryData res = { 0, .0, .0 };
@@ -102,8 +339,18 @@ URIDirectoryData compute_uri_directory_data(const std::string& path) {
 
 URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh) {
     URIQueryData res = { 0, 0, .0, .0 };
+    D_PRINT("URI: " << uri);
+    auto string_pos = faup_get_query_string_pos(fh);
+    D_PRINT("Query string position: " << string_pos);
+    auto string_size = faup_get_query_string_size(fh);
+    D_PRINT("Query string size: " << string_size);
+    
+    if (string_pos == -1) {
+        return res;
+    }
 
-    std::string query = uri.substr(faup_get_query_string_pos(fh), faup_get_query_string_size(fh));
+    std::string query = uri.substr(string_pos, string_size);
+    D_PRINT("Query: " << query);
     auto queries = get_query_parameters(query);
 
     res.size = query.size();
@@ -254,93 +501,68 @@ std::vector<std::pair<std::string, std::string>> get_query_parameters(const std:
 //     return true;
 // }
 
-// std::string getMethodVersion(const std::vector<std::string>& requestSplit) {
-//     std::string rVer;
-//     std::string rMeth;
+std::string getMethodVersion(const std::string& method, const std::string& version) {
+    std::string rVer;
+    std::string rMeth;
 
-//     // Checking if HTTP version is provided, if not assuming it is HTTP 0.9 per
-//     // www.w3.org/Protocols/HTTP/Request.html
-//     if (requestSplit[0].find(" HTTP/") == std::string::npos) {
-//         rVer = "9";
+    if (version.empty()) {
+        rVer = "9";
+    }
+    else {
+        D_PRINT("Version: " << version);
+        rVer = version.substr(0, 1);
+    }
 
-//         // take first seven characters of the first line of request to look for method (methods
-//         have
-//         // up to 7 chars)
-//         std::string t2 = strip(toUpper(requestSplit[0].substr(0, 7)));
+    rMeth = method.substr(0, 2);
+    return rMeth + "|" + rVer;
+}
 
-//         // if method shorter than 7 chars we will have part of URL in t2
-//         // we should find space between method and URL and cut the string on it
-//         auto it = requestSplit[0].find(' ');
-//         std::string meth = t2.substr(0, it);
-//         if (it == std::string::npos) {
-//             // method has 7 chars, so no need to cut t2
-//             meth = t2;
-//         }
+// Checking header order - assuming that header field contains ":"
+std::string getHeaderOrder(const std::vector<std::string>& headers) {
+    std::vector<std::string> ret;
 
-//         if (std::find(METHODS.begin(), METHODS.end(), meth) != METHODS.end()) {
-//             rMeth = meth.substr(0, 2);
-//         }
-//     } else {
-//         auto t = split(requestSplit[0], " HTTP/");
+    for (const auto& reqline: headers) {
+        std::vector<std::string> fields;
+        boost::split(fields, reqline, boost::is_any_of(":"));
+        std::string header = fields[0];
+        std::string headerLower = boost::to_lower_copy(header);
 
-//         std::string t1 = strip(t[0]);
+        std::string fnv1a = fnv1a_32(header.c_str());
+        std::string headerCoded;
+        // Convert fnv1a_32 to hex
+        std::stringstream ss;
+        ss << std::hex << stol(fnv1a);
+        headerCoded = ss.str();
 
-//         // check if method is present by taking first 7 characters and searching there for method
-//         // (methods have up to 7 chars)
-//         std::string t2 = strip(toUpper(t1.substr(0, 7)));
+        if (HDRL.find(headerLower) != HDRL.end()) {
+            if (getHeaderCase(header)) {
+                headerCoded = HDRL[headerLower];
+            } else {
+                headerCoded = "!" + HDRL[headerLower];
+            }
+        }
 
-//         // if method shorter than 7 chars we will have part of URL in t2
-//         // we should find space between method and URL and cut the string on it
-//         auto it = t1.find(' ');
-//         std::string meth = t2.substr(0, it);
+        ret.emplace_back(headerCoded);
+    }
 
-//         if (it == std::string::npos) {
-//             // method has 7 chars, so no need to cut t2
-//             meth = t2;
-//         }
+    return boost::join(ret, ",");
+}
 
-//         if (std::find(METHODS.begin(), METHODS.end(), meth) != METHODS.end()) {
-//             rMeth = meth.substr(0, 2);
+bool getHeaderCase(const std::string& header) {
+    if (header.find('-') == std::string::npos) {
+        return isupper(header[0]) != 0;
+    }
 
-//             if (t[1].find("1.1") != std::string::npos) {
-//                 rVer = "1";
-//             } else {
-//                 rVer = "0";
-//             }
-//         }
-//     }
+    std::vector<std::string> field;
+    boost::split(field, header, boost::is_any_of("-"));
+    for (const auto& c : field) {
+        if (islower(c[0]) != 0) {
+            return false;
+        }
+    }
 
-//     return rMeth + "|" + rVer;
-// }
-
-// // Checking header order - assuming that header field contains ":"
-// std::string getHeaderOrder(const std::vector<std::string>& requestSplit) {
-//     std::vector<std::string> ret;
-
-//     for (const auto& reqline: requestSplit) {
-//         std::string header = split(reqline, ":")[0];
-//         std::string headerLower = toLower(header);
-
-//         int fnv1a_32 = 29; // TODO : replace with corresponding FNV1a_32 hash
-//         std::string headerCoded;
-//         // Convert fnv1a_32 to hex
-//         std::stringstream ss;
-//         ss << std::hex << fnv1a_32;
-//         headerCoded = ss.str();
-
-//         if (HDRL.find(headerLower) != HDRL.end()) {
-//             if (getHeaderCase(header)) {
-//                 headerCoded = HDRL[headerLower];
-//             } else {
-//                 headerCoded = "!" + HDRL[headerLower].get<std::string>();
-//             }
-//         }
-
-//         ret.push_back(headerCoded);
-//     }
-
-//     return join(ret, ",");
-// }
+    return true;
+}
 
 // std::string getUserAgentValue(const std::string& header) {
 //     std::string val = split(header, ":")[1];
