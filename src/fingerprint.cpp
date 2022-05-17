@@ -2,7 +2,7 @@
  * @file fingerprint.cpp
  * @author Gautier Miquet
  * @brief Implementation of HTTP Fingerprinting methods
- * @version 0.2
+ * @version 0.3
  * @date 2022-03-03
  */
 #include <boost/algorithm/string.hpp>
@@ -329,7 +329,6 @@ URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh) 
     D_PRINT("Query string position: " << string_pos);
     auto string_size = faup_get_query_string_size(fh);
     D_PRINT("Query string size: " << string_size);
-
     if (string_pos == -1) {
         return res;
     }

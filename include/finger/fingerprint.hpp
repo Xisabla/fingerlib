@@ -2,7 +2,7 @@
  * @file fingerprint.hpp
  * @author Gautier Miquet
  * @brief Declaration of HTTP Fingerprinting methods and objects
- * @version 0.2
+ * @version 0.3
  * @date 2022-03-03
  */
 
@@ -66,8 +66,12 @@ struct HTTPRequest {
     std::string version;
     std::vector<std::string> headers;
 
-    HTTPRequest(std::string uri, std::string method, std::string version, std::vector<std::string> headers)
-    : uri(std::move(uri)), method(std::move(method)), version(std::move(version)), headers(std::move(headers)) { }
+    HTTPRequest(std::string uri,
+                std::string method,
+                std::string version,
+                std::vector<std::string> headers)
+    : uri(std::move(uri)), method(std::move(method)), version(std::move(version)),
+      headers(std::move(headers)) { }
 };
 
 /**
@@ -144,7 +148,7 @@ std::string uri_fingerprint(const std::string& uri);
 
 /**
  * @brief Computes the fingerprint from the headers, is part of the whole HTTP Request fingerprint
- * 
+ *
  * @param headers Request headers
  * @return std::string The computed headers fingerprint
  */
@@ -152,7 +156,9 @@ std::string header_fingerprint(const std::vector<std::string>& headers);
 
 // ---- Submethods -----------------------------------------------------------------------
 
-std::string getHeaderValue(const std::string& header, const std::string& headerName, const std::map<std::string, std::string>& headerValueTable);
+std::string getHeaderValue(const std::string& header,
+                           const std::string& headerName,
+                           const std::map<std::string, std::string>& headerValueTable);
 
 std::string getContentType(const std::string& header);
 
