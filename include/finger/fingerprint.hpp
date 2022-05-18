@@ -65,13 +65,15 @@ struct HTTPRequest {
     std::string method;
     std::string version;
     std::vector<std::string> headers;
+    std::string payload;
 
     HTTPRequest(std::string uri,
                 std::string method,
                 std::string version,
-                std::vector<std::string> headers)
+                std::vector<std::string> headers,
+                std::string payload = "")
     : uri(std::move(uri)), method(std::move(method)), version(std::move(version)),
-      headers(std::move(headers)) { }
+      headers(std::move(headers)), payload(std::move(payload)) { }
 };
 
 /**
