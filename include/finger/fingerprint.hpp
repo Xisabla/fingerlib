@@ -216,10 +216,10 @@ URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh);
  */
 std::string compute_uri_extention(const std::string& path);
 
-// /**
-//  * @brief Computes the entropy of a string
-//  */
-// float entropy(const std::string& str);
+/**
+ * @brief Computes the entropy of a string
+ */
+float entropy(const std::string& str);
 
 // /**
 //  * @return true If every element of the given header begins with a capital letter

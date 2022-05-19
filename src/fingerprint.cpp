@@ -20,8 +20,17 @@ std::string fingerprint(const HTTPRequest& req) {
     std::string method_finger = getMethodVersion(req.method, req.version);
     std::string header_order = getHeaderOrder(req.headers);
     std::string header_finger = header_fingerprint(req.headers);
+    std::string payload_finger;
 
-    return uri_finger + "|" + method_finger + "|" + header_order + "|" + header_finger + "|||";
+    if (req.payload.empty())
+        payload_finger = "|||";
+    else {
+        std::stringstream ss;
+        ss << "|A|" << entropy(req.payload) << "|" << log10length(req.payload);
+        payload_finger = ss.str();
+    }
+
+    return uri_finger + "|" + method_finger + "|" + header_order + "|" + header_finger + payload_finger;
 }
 
 std::string uri_fingerprint(const std::string& uri) {
@@ -157,7 +166,7 @@ std::string getHeaderValue(const std::string& header,
 
     if (val.find(',') != std::string::npos) {
         // simple splitting of compund values
-        if (val.find(";q=") != std::string::npos) {
+        if (val.find(";q=") != std::string::npos || val.find("; q=") != std::string::npos) {
             // we do not tokenize compound values with quality parameters at this moment
             std::stringstream str;
             str << std::hex << stol(fnv1a_32(val));
@@ -168,11 +177,8 @@ std::string getHeaderValue(const std::string& header,
         std::vector<std::string> t;
         boost::split(t, val, boost::is_any_of(","));
 
-        for (auto& s: t) {
-            boost::trim(s);
-        }
-
-        for (const std::string& j: t) {
+        for (std::string& j: t) {
+            boost::trim_left(j);
             std::stringstream str;
             str << std::hex << stol(fnv1a_32(j));
             if (j.empty() || headerValueTable.find(j) == headerValueTable.end()) {
@@ -209,13 +215,10 @@ std::string getContentType(const std::string& header) {
     if (val.find(',') != std::string::npos) {
         std::vector<std::string> vals;
 
-        if (val.find(", ") != std::string::npos) {
-            boost::split(vals, val, boost::is_any_of(", "));
-        } else {
-            boost::split(vals, val, boost::is_any_of(","));
-        }
+        boost::split(vals, val, boost::is_any_of(","));
 
-        for (const std::string& itv: vals) {
+        for (std::string& itv: vals) {
+            boost::trim_left(itv);
             std::stringstream str;
             str << std::hex;
 
@@ -468,19 +471,18 @@ std::vector<std::pair<std::string, std::string>> get_query_parameters(const std:
     return result;
 }
 
-// float entropy(const std::string& str) {
-//     float entropy = 0;
+float entropy(const std::string& str) {
+    float entropy = 0;
 
-//     const auto occurrences = charOccurrences(str);
+    const auto occurrences = charOccurrences(str);
 
-//     for (const auto& item: occurrences) {
-//         float p = item.second / static_cast<float>(str.size());
-//         entropy += p * std::log2f(p);
-//     }
+    for (const auto& item: occurrences) {
+        float p = item.second / static_cast<float>(str.size());
+        entropy += p * std::log2f(p);
+    }
 
-//     // return -entropy;
-//     return std::roundf((-entropy) * 10) / 10;
-// }
+    return std::roundf((-entropy) * 10) / 10;
+}
 
 // bool isHeaderCapitalized(const std::string& header) {
 //     if (header.find('-') == std::string::npos) {
