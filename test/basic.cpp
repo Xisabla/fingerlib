@@ -72,10 +72,11 @@ TEST(Basic, FingerprintFullNopayload) {
 }
 
 TEST(Basic, FingerprintFullPayload) {
-    auto set = dataset_use("test/data/dataset_basic.json", { "sets", "full-payload" });
+    auto set = dataset_use("test/data/dataset_full.json", { "sets", "full" });
 
     for (auto& entry: set) {
-        if (!dataset_contains(entry, { "uri", "method", "version", "headers", "payload", "fingerprint" })) {
+        if (!dataset_contains(
+            entry, { "uri", "method", "version", "headers", "payload", "fingerprint" })) {
             continue;
         }
 
