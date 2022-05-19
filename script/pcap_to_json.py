@@ -1,14 +1,40 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+Convert data from provided pcap to json format
+"""
+
 import sys
 from os import path
 import subprocess
 import json
+from docopt import docopt
 from hfinger.analysis import run_tshark, ensure_environment
 
+doc = f"""
+{__file__}
+
+Usage:
+    {__file__} <input> [--output=file] [--indent]
+
+    input               Input file, pcap format
+
+Options:
+    -h, --help          Show this help message
+    -o --output=file    Output file, in which converted data will be stored
+    --indent            If set, output will be indented with 4 spaces
+"""
 
 def dict_no_raw(d):
+    """Remove all fields containing raw data from dictionary
+
+    Args:
+        d (dict): Dictionary to be cleaned
+
+    Returns:
+        dict: Dictionary without raw data
+    """
     n = {}
     
     for k,v in d.items():
@@ -19,20 +45,38 @@ def dict_no_raw(d):
     
     return n
 
+def parse_data(p, fp):
+    # Retrieve http request
+    http = p["_source"]["layers"]["http"]
+    http_raw = p["_source"]["layers"]["http_raw"][0]
+
+    # Retrieve payload
+    frame_raw = p["_source"]["layers"]["frame_raw"][0]
+    delim = "0d0a0d0a" if "0d0a0d0a" in frame_raw else "0d0a"
+    payload_raw = frame_raw[frame_raw.find(delim) + len(delim) : ]
+    payload = bytes.fromhex(payload_raw).decode()
+    
+    # Remove all '_raw' fields
+    http = dict_no_raw(http)
+    
+    return {
+        "http_request": http,
+        "http_request_raw": str(bytes.fromhex(http_raw).decode()),
+        "payload": str(payload),
+        "fingerprint": fp["fingerprint"]
+    }
+
 if __name__ == "__main__":
-    # Check arguments
-    if len(sys.argv) < 3:
-        print(f"Usage: {__file__} <pcap file path> <json output> [--indent]")
+    arguments = docopt(doc)
+
+    input = arguments["<input>"]
+    output = arguments["--output"]
+    indent = arguments["--indent"]
+
+    if not path.exists(input):
+        print("Input file does not exist")
         sys.exit(1)
 
-    pcap_file = sys.argv[1]
-    json_file = sys.argv[2]
-
-    INDENT = "--indent" in sys.argv
-
-    if not path.exists(pcap_file):
-        print(f"PCAP file does not exist: {pcap_file}")
-        sys.exit(2)
 
     # Load pcap file
     try:
@@ -46,7 +90,7 @@ if __name__ == "__main__":
             "-x",
             "-Yhttp.request and tcp and not icmp",
             "-r",
-            pcap_file
+            input
             ], capture_output=True, check=True)
 
         pcap = json.loads(res.stdout.decode("utf-8"))
@@ -54,37 +98,13 @@ if __name__ == "__main__":
         print(str(e))
         sys.exit(3)
 
-    result = []
+    fingerprints = run_tshark(input, 5, texec, tver)
+    res = [ parse_data(p, fp) for p, fp in zip(pcap, fingerprints) ]
+    
+    if output:
+        with open(path.abspath(output), 'w', encoding='utf8') as out:
+            json.dump(res, out, indent=4 if indent else None)
 
-    fingerprints = run_tshark(pcap_file, 5, texec, tver)
-
-    for p, fp in zip(pcap, fingerprints):
-        # Retrieve http request
-        http = p["_source"]["layers"]["http"]
-        http_raw = p["_source"]["layers"]["http_raw"][0]
-
-        # Retrieve payload
-        frame_raw = p["_source"]["layers"]["frame_raw"][0]
-        delim = "0d0a0d0a" if "0d0a0d0a" in frame_raw else "0d0a"
-        payload_raw = frame_raw[frame_raw.find(delim) + len(delim) : ]
-        payload = bytes.fromhex(payload_raw).decode()
-        
-        # Remove all '_raw' fields
-        http = dict_no_raw(http)
-
-        # Forge json
-        result.append({
-            "http_request": http,
-            "http_request_raw": str(bytes.fromhex(http_raw).decode()),
-            "payload": str(payload),
-            "fingerprint": fp["fingerprint"]
-        })
-
-    # Write result to json file
-    with open(path.abspath(json_file), 'w', encoding='utf8') as file:
-        if INDENT:
-            json.dump(result, file, indent=4)
-        else:
-            json.dump(result, file)
-
-    print(f"Done. Result written to {json_file} ({len(result)} entries)")
+        print(f"Done. Result written to {output} ({len(res)} entries)")
+    else:
+        print(json.dumps(res, indent=4 if indent else None))

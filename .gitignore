@@ -39,3 +39,4 @@ test/bin/*
 
 # Server
 server/out
+server/out*
