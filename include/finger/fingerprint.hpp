@@ -154,7 +154,7 @@ std::string uri_fingerprint(const std::string& uri);
  * @param headers Request headers
  * @return std::string The computed headers fingerprint
  */
-std::string header_fingerprint(const std::vector<std::string>& headers);
+std::string header_fingerprint(const std::vector<std::string>& header_lines);
 
 // ---- Submethods -----------------------------------------------------------------------
 
