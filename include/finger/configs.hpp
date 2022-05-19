@@ -56,11 +56,15 @@ static const std::map<std::string, std::string> TE = {
 /**
  * @brief HTTP Request field "Accept-Charset" values
  */
-static const std::map<std::string, std::string> ACCPTCHAR = { { "windows-1251", "w1" },
-                                                              { "utf-8", "ut" },
-                                                              { "*", "as" },
-                                                              { "iso-8859-1", "is" } };
+static const std::map<std::string, std::string> ACCEPTCHAR = { { "windows-1251", "w1" },
+                                                               { "utf-8", "ut" },
+                                                               { "*", "as" },
+                                                               { "iso-8859-1", "is" } };
 
+/**
+ * @brief Configs used for fingerprint generation
+ * NOTE: not used yet
+ */
 static const std::vector<std::map<int, std::string>> FEATURESET = {
     {
     { 1, "s" },
@@ -132,97 +136,109 @@ static const std::vector<std::string> METHODS = {
     "GET", "POST", "HEAD", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH",
 };
 
-static std::map<std::string, std::string> HDRL = { { "accept", "ac" },
-                                                   { "accept-charset", "ac-ch" },
-                                                   { "accept-datetime", "ac-da" },
-                                                   { "accept-encoding", "ac-en" },
-                                                   { "accept-language", "ac-la" },
-                                                   { "access-control-request-headers", "a-c-r-h" },
-                                                   { "access-control-request-method", "a-c-r-m" },
-                                                   { "a-im", "a-i" },
-                                                   { "authorization", "au" },
-                                                   { "cache-control", "ca-co" },
-                                                   { "connection", "co" },
-                                                   { "content-length", "co-le" },
-                                                   { "content-type", "co-ty" },
-                                                   { "content-encoding", "co-en" },
-                                                   { "cookie", "ck" },
-                                                   { "date", "da" },
-                                                   { "dnt", "dn" },
-                                                   { "expect", "ex" },
-                                                   { "forwarded", "fo" },
-                                                   { "from", "fr" },
-                                                   { "front-end-https", "f-e-h" },
-                                                   { "host", "ho" },
-                                                   { "http2-settings", "ht-se" },
-                                                   { "if-match", "if-ma" },
-                                                   { "if-modified-since", "i-m-s" },
-                                                   { "if-none-match", "i-n-m" },
-                                                   { "if-range", "if-ra" },
-                                                   { "if-unmodified-since", "i-u-s" },
-                                                   { "keep-alive", "ke-al" },
-                                                   { "max-forwards", "ma-fo" },
-                                                   { "origin", "or" },
-                                                   { "pragma", "pr" },
-                                                   { "proxy-authorization", "pr-au" },
-                                                   { "proxy-connection", "pr-co" },
-                                                   { "range", "ra" },
-                                                   { "referer", "re" },
-                                                   { "save-data", "sa-da" },
-                                                   { "te", "te" },
-                                                   { "upgrade", "up" },
-                                                   { "upgrade-insecure-requests", "u-i-r" },
-                                                   { "user-agent", "us-ag" },
-                                                   { "via", "vi" },
-                                                   { "warning", "wa" },
-                                                   { "x-att-deviceid", "x-a-d" },
-                                                   { "x-correlation-id", "x-c-i" },
-                                                   { "x-csrf-token", "x-c-t" },
-                                                   { "x-forwarded-for", "x-f-f" },
-                                                   { "x-forwarded-host", "x-f-h" },
-                                                   { "x-forwarded-proto", "x-f-p" },
-                                                   { "x-http-method-override", "x-h-m-o" },
-                                                   { "x-requested-with", "x-r-w" },
-                                                   { "x-request-id", "x-r-i" } };
+/**
+ * @brief Shortened HTTP Header names
+ */
+static std::map<std::string, std::string> HEADERS = {
+    { "accept", "ac" },
+    { "accept-charset", "ac-ch" },
+    { "accept-datetime", "ac-da" },
+    { "accept-encoding", "ac-en" },
+    { "accept-language", "ac-la" },
+    { "access-control-request-headers", "a-c-r-h" },
+    { "access-control-request-method", "a-c-r-m" },
+    { "a-im", "a-i" },
+    { "authorization", "au" },
+    { "cache-control", "ca-co" },
+    { "connection", "co" },
+    { "content-length", "co-le" },
+    { "content-type", "co-ty" },
+    { "content-encoding", "co-en" },
+    { "cookie", "ck" },
+    { "date", "da" },
+    { "dnt", "dn" },
+    { "expect", "ex" },
+    { "forwarded", "fo" },
+    { "from", "fr" },
+    { "front-end-https", "f-e-h" },
+    { "host", "ho" },
+    { "http2-settings", "ht-se" },
+    { "if-match", "if-ma" },
+    { "if-modified-since", "i-m-s" },
+    { "if-none-match", "i-n-m" },
+    { "if-range", "if-ra" },
+    { "if-unmodified-since", "i-u-s" },
+    { "keep-alive", "ke-al" },
+    { "max-forwards", "ma-fo" },
+    { "origin", "or" },
+    { "pragma", "pr" },
+    { "proxy-authorization", "pr-au" },
+    { "proxy-connection", "pr-co" },
+    { "range", "ra" },
+    { "referer", "re" },
+    { "save-data", "sa-da" },
+    { "te", "te" },
+    { "upgrade", "up" },
+    { "upgrade-insecure-requests", "u-i-r" },
+    { "user-agent", "us-ag" },
+    { "via", "vi" },
+    { "warning", "wa" },
+    { "x-att-deviceid", "x-a-d" },
+    { "x-correlation-id", "x-c-i" },
+    { "x-csrf-token", "x-c-t" },
+    { "x-forwarded-for", "x-f-f" },
+    { "x-forwarded-host", "x-f-h" },
+    { "x-forwarded-proto", "x-f-p" },
+    { "x-http-method-override", "x-h-m-o" },
+    { "x-requested-with", "x-r-w" },
+    { "x-request-id", "x-r-i" }
+};
 
-static std::map<std::string, std::string> ACCPT = { { "*", "as" },
-                                                    { "*/*", "as-as" },
-                                                    { "application/*", "ap-as" },
-                                                    { "application/ecmascript", "ap-ec" },
-                                                    { "application/font-woff", "ap-f-w" },
-                                                    { "application/font-woff2", "ap-f-w-2" },
-                                                    { "application/javascript", "ap-ja" },
-                                                    { "application/json", "ap-js" },
-                                                    { "application/msword", "ap-m-w" },
-                                                    { "application/octet-stream", "ap-o-s" },
-                                                    { "application/vnd.ms-excel", "ap-m-e" },
-                                                    { "application/vnd.ms-powerpoint", "ap-m-p" },
-                                                    { "application/xaml+xml", "ap-xa-xm" },
-                                                    { "application/x-ecmascript", "ap-x-e" },
-                                                    { "application/xhtml+xml", "ap-xh+xm" },
-                                                    { "application/xml", "ap-xm" },
-                                                    { "application/x-ms-application", "ap-x-m-ap" },
-                                                    { "application/x-ms-xbap", "ap-x-m-xb" },
-                                                    { "application/x-shockwave-flash",
-                                                      "ap-x-sh-fl" },
-                                                    { "audio/*", "au-as" },
-                                                    { "image/*", "im-as" },
-                                                    { "image/gif", "im-gi" },
-                                                    { "image/jpeg", "im-jp" },
-                                                    { "image/pjpeg", "im-pj" },
-                                                    { "image/png", "im-pn" },
-                                                    { "image/svg+xml", "im-sv-xm" },
-                                                    { "image/webp", "im-we" },
-                                                    { "image/x-xbitmap", "im-x-xb" },
-                                                    { "text/*", "te-as" },
-                                                    { "text/css", "te-cs" },
-                                                    { "text/html", "te-ht" },
-                                                    { "text/javascript", "te-ja" },
-                                                    { "text/plain", "te-pl" },
-                                                    { "text/xml", "te-xm" },
-                                                    { "video/*", "vi-as" } };
+/**
+ * @brief Shortened values for HTTP Accept parameter
+ */
+static std::map<std::string, std::string> ACCEPT = {
+    { "*", "as" },
+    { "*/*", "as-as" },
+    { "application/*", "ap-as" },
+    { "application/ecmascript", "ap-ec" },
+    { "application/font-woff", "ap-f-w" },
+    { "application/font-woff2", "ap-f-w-2" },
+    { "application/javascript", "ap-ja" },
+    { "application/json", "ap-js" },
+    { "application/msword", "ap-m-w" },
+    { "application/octet-stream", "ap-o-s" },
+    { "application/vnd.ms-excel", "ap-m-e" },
+    { "application/vnd.ms-powerpoint", "ap-m-p" },
+    { "application/xaml+xml", "ap-xa-xm" },
+    { "application/x-ecmascript", "ap-x-e" },
+    { "application/xhtml+xml", "ap-xh+xm" },
+    { "application/xml", "ap-xm" },
+    { "application/x-ms-application", "ap-x-m-ap" },
+    { "application/x-ms-xbap", "ap-x-m-xb" },
+    { "application/x-shockwave-flash", "ap-x-sh-fl" },
+    { "audio/*", "au-as" },
+    { "image/*", "im-as" },
+    { "image/gif", "im-gi" },
+    { "image/jpeg", "im-jp" },
+    { "image/pjpeg", "im-pj" },
+    { "image/png", "im-pn" },
+    { "image/svg+xml", "im-sv-xm" },
+    { "image/webp", "im-we" },
+    { "image/x-xbitmap", "im-x-xb" },
+    { "text/*", "te-as" },
+    { "text/css", "te-cs" },
+    { "text/html", "te-ht" },
+    { "text/javascript", "te-ja" },
+    { "text/plain", "te-pl" },
+    { "text/xml", "te-xm" },
+    { "video/*", "vi-as" }
+};
 
-static std::map<std::string, std::string> CONTENTTYPE = {
+/**
+ * @brief Shortened values for HTTP Content-Type parameter
+ */
+static std::map<std::string, std::string> CONTENT_TYPE = {
     { "application/javascript", "ap-ja" },
     { "application/json", "ap-js" },
     { "application/octet-stream", "ap-os" },
@@ -249,6 +265,9 @@ static std::map<std::string, std::string> CONTENTTYPE = {
     { "video/mpeg", "vi-mp" }
 };
 
+/**
+ * @brief List of accepted extensions for URI
+ */
 static std::vector<std::string> EXT = { "123",
                                         "1km",
                                         "3dm",
@@ -1693,4 +1712,4 @@ static std::vector<std::string> EXT = { "123",
                                         "zsh",
                                         "zshrc" };
 
-#endif /* FINGER_CONFIGS_HPP */
+#endif // FINGER_CONFIGS_HPP
