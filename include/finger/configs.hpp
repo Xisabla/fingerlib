@@ -2,7 +2,7 @@
  * @file configs.hpp
  * @author Paul Bucamp
  * @brief Values mapping used for the fingerprint generation
- * @version 1.1
+ * @version 1.0.0
  * @date 2022-03-03
  */
 #ifndef FINGER_CONFIGS_HPP

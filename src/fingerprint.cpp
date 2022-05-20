@@ -2,7 +2,7 @@
  * @file fingerprint.cpp
  * @author Gautier Miquet
  * @brief Implementation of HTTP Fingerprinting methods
- * @version 0.3
+ * @version 1.0.0
  * @date 2022-03-03
  */
 #include <boost/algorithm/string.hpp>

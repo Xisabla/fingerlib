@@ -2,7 +2,7 @@
  * @file fingerprint.hpp
  * @author Gautier Miquet
  * @brief Declaration of HTTP Fingerprinting methods and objects
- * @version 0.3
+ * @version 1.0.0
  * @date 2022-03-03
  */
 

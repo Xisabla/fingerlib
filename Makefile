@@ -1,5 +1,7 @@
 CXX			= g++
 CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb
+REVISION	= $(shell git rev-parse --short HEAD | head -c 7)
+VERSION 	= $(shell head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)
 
 ifeq ($(VERBOSE), 1)
 	Q =
@@ -39,6 +41,12 @@ TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS))
 release: CFLAGS=-std=c++17 -fPIC -Wall -O2
 release: clean
 release: $(OUT)
+release:
+	@echo
+	@echo "Done:"
+	@echo "> Out: $(OUT)"
+	@echo "> Version: $(VERSION)"
+	@echo "> Revision: $(REVISION)"
 
 # > Build
 all: format $(OUT)
