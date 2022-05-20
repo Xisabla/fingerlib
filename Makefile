@@ -1,10 +1,16 @@
 CXX			= g++
-CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb3
+CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb
+REVISION	= $(shell git rev-parse --short HEAD | head -c 7)
+VERSION 	= $(shell head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)
 
 ifeq ($(VERBOSE), 1)
 	Q =
 else
 	Q = @
+endif
+
+ifeq ($(DEBUG), 1)
+	CFLAGS += -DDEBUG
 endif
 
 # Sources
@@ -13,6 +19,10 @@ OBJ			= obj
 OUTDIR		= out
 
 INCLUDES 	= -Iinclude
+HEADERS 	= $(wildcard include/finger/*.hpp)
+
+LIBDIRS		= -L/usr/lib/x86_64-linux-gnu/
+LIBS 		= -lfaupl
 
 SRCS		= $(SRC)/fingerprint.cpp
 OBJS		= $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRCS))
@@ -21,6 +31,7 @@ OUT			= $(OUTDIR)/fingerlib.so
 
 # Test
 TEST		= test
+TESTCOMMONS = $(TEST)/common/dataset.cpp
 TESTBIN		= $(TEST)/bin
 TESTS		= $(wildcard $(TEST)/*.cpp)
 TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS))
@@ -30,22 +41,28 @@ TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS))
 release: CFLAGS=-std=c++17 -fPIC -Wall -O2
 release: clean
 release: $(OUT)
+release:
+	@echo
+	@echo "Done:"
+	@echo "> Out: $(OUT)"
+	@echo "> Version: $(VERSION)"
+	@echo "> Revision: $(REVISION)"
 
 # > Build
 all: format $(OUT)
 
 $(OUT): $(OBJS) $(OBJ) $(OUTDIR)
 	@echo "LINK $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) -shared -fPIC -o $(OUT) $(OBJS)
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) -shared -o $(OUT) $(OBJS)
 
 $(OBJ)/%.o: $(SRC)/%.cpp $(OBJ)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) -c $< -o $@
 
 # > Tests
-$(TEST)/bin/%: $(TEST)/%.cpp $(OUT)
+$(TEST)/bin/%: $(TEST)/%.cpp $(TESTCOMMONS) $(OUT)
 	@echo "CXX $<"
-	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $< $(OBJS) -o $@
+	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(TESTCOMMONS) $(OUT) $(LIBS) -o $@ -lCppUTest
 
 test: $(OUT) $(TESTBIN) $(TESTBINS)
 	@for test in $(TESTBINS);						\
@@ -53,7 +70,7 @@ test: $(OUT) $(TESTBIN) $(TESTBINS)
 	 	echo "---------------------------->>";		\
 		echo $$test;								\
 		echo "---------------------------->>";		\
-		./$$test;									\
+		./$$test -v;									\
 	 done
 
 # > Directories
@@ -71,5 +88,5 @@ clean:
 	$(Q)$(RM) -rf $(OBJ) $(OUTDIR) $(TEST)/bin
 
 format:
-	$(Q)clang-tidy $(SRCS) -fix -header-filter=include -- -Iinclude/ -std=c++17 2> /dev/null
-	$(Q)clang-format $(SRCS) -i --style=file 2> /dev/null
+	$(Q)clang-format $(SRCS) $(HEADERS) -i --style=file
+	$(Q)clang-tidy $(SRCS) $(HEADERS) -fix -header-filter=include/finger -- -Iinclude/ -std=c++17

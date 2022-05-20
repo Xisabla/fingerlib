@@ -1,0 +1,44 @@
+name: "Build and test C++ library"
+
+on:
+  push:
+    branches: [main, dev, d/*]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Check out repository code"
+        uses: actions/checkout@v2
+      - name: "Extract branch name"
+        run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+      - name: "Extract version"
+        run: echo "VERSION=$(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)" >> $GITHUB_ENV
+      - name: "Install dependencies using apt"
+        run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
+      - name: "Install faup dependency"
+        run: >
+          git clone https://github.com/stricaud/faup faup
+          && mkdir -p faup/build
+          && cd faup/build
+          && cmake ../
+          && make
+          && sudo make install
+          && sudo ldconfig
+          && ldd /usr/local/bin/faup
+      - name: "Run: Build"
+        run: make release VERBOSE=1
+      - name: "Run: Test"
+        run: make test DEBUG=1 VERBOSE=1
+      - name: "Publish version"
+        uses: softprops/action-gh-release@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          name: "Release ${{ env.VERSION }}"
+          tag_name: "v${{ env.VERSION }}"
+          generate_release_notes: true
+          files: |
+            out/fingerlib.so
+        if: env.BRANCH == 'main'
