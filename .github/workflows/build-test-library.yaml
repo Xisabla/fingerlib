@@ -42,4 +42,4 @@ jobs:
           generate_release_notes: true
           files: |
             out/fingerlib.so
-        if: env.BRANCH == 'workflow-release'
+        if: env.BRANCH == 'main'
