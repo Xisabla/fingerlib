@@ -32,6 +32,13 @@ jobs:
         run: make VERBOSE=1
       - name: "Run: Test"
         run: make test DEBUG=1 VERBOSE=1
-      - name: "Test release"
+      - name: "Publish version"
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${VERSION}"
+          prerelease: true
+          title: "Demo Release"
+          files: |
+            out/*
         if: env.BRANCH == 'workflow-release'
-        run: echo "Perform release for version ${VERSION}"
