@@ -1,6 +1,6 @@
 # fingerlib
 
-[![Linux build](https://github.com/Xisabla/fingerlib/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/Xisabla/fingerlib/actions/workflows/build-and-test.yaml)
+[![Build and test C++ library](https://github.com/Xisabla/fingerlib/actions/workflows/build-test-library.yaml/badge.svg)](https://github.com/Xisabla/fingerlib/actions/workflows/build-test-library.yaml)
 
 HTTP Fingerprint generation and distance computation library in C++
 
