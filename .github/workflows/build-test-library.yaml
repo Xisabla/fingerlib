@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: "Check out repository code"
         uses: actions/checkout@v2
-      - name: "Show version"
-        run: echo "Build $(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)-$(git rev-parse --short "$GITHUB_SHA" | head -c 7)"
+      - name: "Extract branch name"
+        run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+      - name: "Extract version"
+        run: echo "VERSION=$(head include/finger/fingerprint.hpp|grep "@version" | cut -d ' ' -f4)" >> $GITHUB_ENV
       - name: "Install dependencies using apt"
         run: sudo apt install -y libboost-dev libboost-all-dev libpoco-dev cpputest
       - name: "Install faup dependency"
@@ -30,3 +32,6 @@ jobs:
         run: make VERBOSE=1
       - name: "Run: Test"
         run: make test DEBUG=1 VERBOSE=1
+      - name: "Test release"
+        if: env.BRANCH == 'd/workflow-release'
+        run: echo "Perform release for version ${VERSION}"
