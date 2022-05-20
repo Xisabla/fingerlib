@@ -7,7 +7,7 @@ on:
     branches: [main, dev]
 
 jobs:
-  test:
+  build-test:
     runs-on: ubuntu-latest
     steps:
       - name: "Check out repository code"
