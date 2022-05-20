@@ -33,5 +33,5 @@ jobs:
       - name: "Run: Test"
         run: make test DEBUG=1 VERBOSE=1
       - name: "Test release"
-        if: env.BRANCH == 'd/workflow-release'
+        if: env.BRANCH == 'workflow-release'
         run: echo "Perform release for version ${VERSION}"
