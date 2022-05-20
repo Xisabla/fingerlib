@@ -2,7 +2,7 @@
  * @file fingerprint.hpp
  * @author Gautier Miquet
  * @brief Declaration of HTTP Fingerprinting methods and objects
- * @version 0.2
+ * @version 0.3
  * @date 2022-03-03
  */
 
@@ -37,19 +37,6 @@
 #define D_PRINT(msg)
 #endif
 
-// ---- Creation exception shortcut ------------------------------------------------------
-
-#define NEW_EXCEPTION(name, msg)                                             \
-    class name : public std::exception {                                     \
-      private:                                                               \
-        std::string message;                                                 \
-                                                                             \
-      public:                                                                \
-        name(const std::string& message = (msg)): message(message) { }       \
-        virtual ~name() throw() { }                                          \
-        virtual const char* what() const throw() { return message.c_str(); } \
-    };
-
 //--------------------------------------------------------------------------------------//
 //                                                                                      //
 //                                   Data Structures                                    //
@@ -57,15 +44,22 @@
 //--------------------------------------------------------------------------------------//
 
 /**
- * @brief
- * @note wip
+ * @brief Data used to forge a fingerprint from an HTTP Request
  */
 struct HTTPRequest {
     std::string uri;
     std::string method;
+    std::string version;
+    std::vector<std::string> headers;
+    std::string payload;
 
-    HTTPRequest(std::string uri, std::string method)
-    : uri(std::move(uri)), method(std::move(method)) { }
+    HTTPRequest(std::string uri,
+                std::string method,
+                std::string version,
+                std::vector<std::string> headers,
+                std::string payload = "")
+    : uri(std::move(uri)), method(std::move(method)), version(std::move(version)),
+      headers(std::move(headers)), payload(std::move(payload)) { }
 };
 
 /**
@@ -98,7 +92,7 @@ struct URIQueryData {
     int size;
 
     /**
-     * @brief Number of query parameteres
+     * @brief Number of query parameters
      */
     int count;
 
@@ -125,7 +119,6 @@ struct URIQueryData {
 
 /**
  * @brief Computes a fingerprint from an HTTP Request
- * method
  *
  * @param req HTTP Request fields
  * @return std::string The computed fingerprint
@@ -140,20 +133,119 @@ std::string fingerprint(const HTTPRequest& req);
  */
 std::string uri_fingerprint(const std::string& uri);
 
+/**
+ * @brief Computes the fingerprint field for the HTTP method used, is part of the whole HTTP Request
+ * fingerprint
+ *
+ * @param method Full HTTP method name (GET, POST, DELETE, ...)
+ * @return std::string The computed method fingerprint (correspond to the first letter: G, P, D,
+ * ...)
+ */
+std::string method_fingerprint(const std::string& method);
+
+/**
+ * @brief Computes the fingerprint field for the HTTP version used, is part of the whole HTTP
+ * Request fingerprint
+ *
+ * @param version Full HTTP version (1.1, 1.0, ...)
+ * @return std::string The computed version fingerprint (correspond to the first digit: 1, ...)
+ */
+std::string version_fingerprint(const std::string& version);
+
+/**
+ * @brief Computes the fingerprint from the headers, is part of the whole HTTP Request fingerprint
+ *
+ * @param headers Request headers
+ * @return std::string The computed headers fingerprint
+ */
+std::string header_fingerprint(const std::vector<std::string>& headers);
+
+/**
+ * @brief Computes the fingerprint from the payload, is part of the whole HTTP Request fingerprint
+ *
+ * @param payload Full string encoded payload
+ * @return std::string The computed payload fingerprint
+ */
+std::string payload_fingerprint(const std::string& payload);
+
 // ---- Submethods -----------------------------------------------------------------------
 
 /**
- * @brief Decodes a hexadecimally encoded string (adaptation of POCO::decode)
+ * @brief Fowler–Noll–Vo hash function (non cryptographic hash)
  *
- * @param str encoded string
- * @param decodedStr decoded string
+ * @param str String to hash
+ * @return std::string Hashed string
+ */
+std::string fnv1a_32(const std::string& str);
+
+// Headers
+
+/**
+ * @brief Get the hex value for usual header
+ *
+ * @param header Header
+ * @param headerName Name of the header
+ * @param headerValueTable Values table for the header
+ * @return std::string Hex value of the header
+ */
+std::string getHeaderValue(const std::string& header,
+                           const std::string& headerName,
+                           const std::map<std::string, std::string>& headerValueTable);
+
+/**
+ * @brief Get the hex value from Content-Type header
+ *
+ * @param header Content-Type header
+ * @return std::string Hex value of the Content-Type header
+ */
+std::string getContentType(const std::string& header);
+
+/**
+ * @brief Get the hex value from Accept-Language header
+ *
+ * @param header Accept-Language header
+ * @return std::string Hex value of the Accept-Language header
+ */
+std::string getAcceptLanguageValue(const std::string& header);
+
+/**
+ * @brief Get the hex value from User-Agent header
+ *
+ * @param header User-Agent header
+ * @return std::string Hex value of the User-Agent header
+ */
+std::string getUaValue(const std::string& header);
+
+/**
+ * @brief Get the case of the header
+ *
+ * @return true If the header is in upper case
+ * @return false Otherwise
+ */
+bool getHeaderCase(const std::string& header);
+
+/**
+ * @brief Get the order of the headers
+ */
+std::string getHeaderOrder(const std::vector<std::string>& headers);
+
+
+// URI
+
+/**
+ * @brief Decodes a hexadecimal-encoded string (adaptation of POCO::decode)
+ * @note
+ * https://github.com/pocoproject/poco/blob/9d1c428c861f2e5ccf09149bbe8d2149720c5896/Foundation/src/URI.cpp#L669
+ * @param str Encoded string
+ * @param decodedStr Decoded string
  * @return void
  */
 void decode(const std::string& str, std::string& decodedStr);
 
 /**
  * @brief Parses query parameters and values from given query
- *
+ * @note
+ * https://github.com/pocoproject/poco/blob/9d1c428c861f2e5ccf09149bbe8d2149720c5896/Foundation/src/URI.cpp#L373
  * @param query
  * @return std::vector <std::pair<std::string, std::string>> list of key-value pairs (parameters and
  * their values)
@@ -188,82 +280,12 @@ URIQueryData compute_uri_query_data(const std::string& uri, faup_handler_t* fh);
  */
 std::string compute_uri_extention(const std::string& path);
 
-// /**
-//  * @brief Computes the entropy of a string
-//  */
-// float entropy(const std::string& str);
+// Others
 
-// /**
-//  * @return true If every element of the given header begins with a capital letter
-//  * @return false Otherwise
-//  */
-// bool isHeaderCapitalized(const std::string& header);
-
-// /**
-//  * @brief Reads the configuration file and stores it in a global variable (HDRL, CONTENTTYPE,
-//  ACCPT)
-//  */
-// nlohmann::json readConfig(const std::string& path);
-
-
-// /**
-//  * @brief Get the case of the header
-//  *
-//  * @return true If the header is in upper case
-//  * @return false Otherwise
-//  */
-// bool getHeaderCase(const std::string& header);
-
-// /**
-//  * @brief Get the method and version of the request in the form of "method|version"
-//  */
-// std::string getMethodVersion(const std::vector<std::string>& requestSplit);
-
-// /**
-//  * @brief Get the order of the headers
-//  */
-// std::string getHeaderOrder(const std::vector<std::string>& requestSplit);
-
-// /**
-//  * @brief Get the User-Agent value of the header
-//  */
-// std::string getUserAgentValue(const std::string& header);
-
-// /**
-//  * @brief Get the value of a header
-//  *
-//  * @param header
-//  * @param headerName
-//  * @param headerValues
-//  * @return std::string
-//  */
-// std::string getHeaderValue(const std::string& header,
-//                            const std::string& headerName,
-//                            const std::map<std::string, std::string>& headerValues);
-
-// /**
-//  * @brief Get the content type of the header
-//  *
-//  * @param header
-//  * @return std::string
-//  */
-// std::string getContentType(const std::string& header);
-
-// /**
-//  * @brief Get the accept language value of the header
-//  *
-//  * @param header
-//  * @return std::string
-//  */
-// std::string getAcceptLanguageValue(const std::string& header);
-
-// /**
-//  * @brief Get all the values of the header in the form of "val1/val2/val3..."
-//  *
-//  * @param requestSplit
-//  * @return std::string
-//  */
-// std::string getPopHeaderValues(const std::vector<std::string>& requestSplit);
+/**
+ * @brief Computes the entropy of a string
+ */
+float entropy(const std::string& str);
 
 //--------------------------------------------------------------------------------------//
 //                                       Helpers                                        //
@@ -288,29 +310,5 @@ float log10length(const std::string& str);
  * @note The precision is the number of digits after the decimal point
  */
 std::string floatPrecision(const float& v, const int& p);
-
-// std::vector<std::string> split(std::string str, const std::string& delimiter);
-
-/*
-std::map<std::string, int> getCounter(const std::vector<std::string>& items);
-
-std::vector<std::string> split(std::string str, const std::string& delimiter);
-
-std::string join(std::vector<std::string> strings, const std::string& delimiter);
-
-std::string toUpper(const std::string& str);
-
-std::string toLower(const std::string& str);
-
-std::string strip(const std::string& str);*/
-
-//--------------------------------------------------------------------------------------//
-//                                                                                      //
-//                                      Exceptions                                      //
-//                                                                                      //
-//--------------------------------------------------------------------------------------//
-
-NEW_EXCEPTION(BadReportmodeVariable, "Problem with 'reportmode' variable value.")
-NEW_EXCEPTION(NotAPcap, "The provided file is not a valid pcap file.")
 
 #endif /* FINGER_FINGERPRINT_HPP */
