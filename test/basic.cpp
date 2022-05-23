@@ -7,6 +7,7 @@
  */
 #include <finger/fingerprint.hpp>
 #include <test/dataset.hpp>
+#include <boost/algorithm/string.hpp>
 
 // clang-format off
 #include <CppUTest/CommandLineTestRunner.h>
@@ -92,6 +93,37 @@ TEST(Basic, FingerprintFullPayload) {
         auto fp = fingerprint(req);
 
         STRCMP_EQUAL(expected.c_str(), fp.c_str());
+    }
+}
+
+TEST(Basic, FingerprintFullPayloadInC) {
+    auto set = dataset_use("test/data/dataset_full.json", { "sets", "full" });
+
+    for (auto& entry: set) {
+        if (!dataset_contains(
+            entry, { "uri", "method", "version", "headers", "payload", "fingerprint" })) {
+            continue;
+        }
+
+        std::string expected = entry["fingerprint"].get<std::string>();
+        std::string uri = entry["uri"].get<std::string>();
+        std::string method = entry["method"].get<std::string>();
+        std::string version = entry["version"].get<std::string>();
+        std::vector<std::string> headers = entry["headers"].get<std::vector<std::string>>();
+        std::string joinedHeaders = boost::join(headers, "\n");
+        std::string payload = entry["payload"].get<std::string>();
+
+        HTTPRequest_C req(
+            const_cast<char*>(uri.c_str()),
+            const_cast<char*>(method.c_str()),
+            const_cast<char*>(version.c_str()),
+            const_cast<char*>(joinedHeaders.c_str()),
+            const_cast<char*>(payload.c_str())
+        );
+
+        auto fp = fingerprint_c(&req);
+
+        STRCMP_EQUAL(expected.c_str(), fp);
     }
 }
 

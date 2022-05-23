@@ -10,7 +10,6 @@
 #include <finger/fingerprint.hpp>
 #include <iomanip>
 #include <map>
-
 //--------------------------------------------------------------------------------------//
 //                               Fingerprint Computation                                //
 //--------------------------------------------------------------------------------------//
@@ -25,6 +24,21 @@ std::string fingerprint(const HTTPRequest& req) {
     fingerprint << payload_fingerprint(req.payload);
 
     return fingerprint.str();
+}
+
+char* fingerprint_c(const HTTPRequest_C* req) {
+    std::vector<std::string> headers;
+    boost::split(headers, req->headers, boost::is_any_of("\r\n"), boost::token_compress_on);
+
+    HTTPRequest cppReq(
+        req->uri,
+        req->method,
+        req->version,
+        headers,
+        req->payload == NULL ? "" : req->payload
+    );
+
+    return strdup(fingerprint(cppReq).c_str());
 }
 
 std::string uri_fingerprint(const std::string& uri) {

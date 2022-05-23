@@ -63,6 +63,25 @@ struct HTTPRequest {
 };
 
 /**
+ * @brief Data used to forge a fingerprint from an HTTP Request in C
+ * 
+ */
+struct HTTPRequest_C {
+    char* uri;
+    char* method;
+    char* version;
+    char* headers;
+    char* payload;
+
+    HTTPRequest_C(char* uri,
+                  char* method,
+                  char* version,
+                  char* headers,
+                  char* payload = NULL)
+    : uri(uri), method(method), version(version), headers(headers), payload(payload) { }
+};
+
+/**
  * @brief Computed data about the directories in the URI path
  */
 struct URIDirectoryData {
@@ -124,6 +143,7 @@ struct URIQueryData {
  * @return std::string The computed fingerprint
  */
 std::string fingerprint(const HTTPRequest& req);
+char* fingerprint_c(const HTTPRequest_C* req);
 
 /**
  * @brief Computes the fingerprint from the URI, is part of the whole HTTP Request fingerprint
