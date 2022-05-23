@@ -4,13 +4,19 @@ keywords = [
     "SELECT",
     "UPDATE",
     "DELETE",
-    "INSERT"
+    "INSERT",
+    " AND ",
+    " OR ",
+    " ORDER BY "
 ]
 
 
 def check_entry(entry):
     """Check for SQL keywords in the entry's payload."""
+    http = entry['request']['raw']
     payload = entry["request"]["payload"]
+    return True in [keyword in http for keyword in keywords] \
+        or (len(payload) > 0 and [keyword in payload for keyword in keywords])
 
     return True in [keyword in payload.upper() for keyword in keywords]
 
