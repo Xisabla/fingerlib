@@ -1,3 +1,5 @@
 docopt
 hfinger
+matplotlib
+pandas
 pyshark
