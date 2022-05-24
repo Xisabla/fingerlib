@@ -195,7 +195,7 @@ def plot_payload_flag(entries, ax=None):
 
 def plot_payload_length(entries, ax=None):
     df = pd.DataFrame(entries)
-    return df.plot.kde(title='Payload length', ax=ax)
+    return df.plot.kde(title=f'Payload length (total: {len(entries)})' , ax=ax)
 
 def plot_payload_entropy(entries, ax=None, bars=False):
     # Bars
@@ -208,7 +208,7 @@ def plot_payload_entropy(entries, ax=None, bars=False):
             title=f'Payload entropy (total: {len(entries)})', ax=ax)
 
     # Density
-    df = pd.Series(entries)
+    df = pd.DataFrame(entries)
     return df.plot.kde(title=f'Payload entropy (total: {len(entries)})', ax=ax)
 
 if __name__ == "__main__":
@@ -218,6 +218,8 @@ if __name__ == "__main__":
 
     values = read_data(sys.argv[1])
 
+    print(f"NOTE: Don't forget to comment or uncomment relevant plots in {__file__} !")
+
     # Plot
 
     # plot_uri_length(values['uri_length']) # irrelevant
@@ -225,13 +227,13 @@ if __name__ == "__main__":
     # plot_uri_dir_avg_size(values['uri_dir_avg_size']) # irrelevant
     # plot_uri_ext(values['uri_ext']) # irrelevant
     # plot_query_size(values['uri_query_size']) # irrelevant
-    # splot_query_avg_size(values['uri_query_avg_size']) # irrelevant
-    # plot_http_method(values['http_method'])
-    # plot_http_version(values['http_version']) # irrelevant>
+    # plot_query_avg_size(values['uri_query_avg_size']) # irrelevant
+    plot_http_method(values['http_method'])
+    # plot_http_version(values['http_version']) # irrelevant
     # plot_headers(values['headers']) # irrelevant, too many headers (in general)
-    # plot_all_headers(values['all_headers'])
-    # plot_payload_flag(values['payload_flag'])
-    # plot_payload_length(values['payload_length'])
-    # plot_payload_entropy(values['payload_entropy'])
+    plot_all_headers(values['all_headers'])
+    plot_payload_flag(values['payload_flag'])
+    plot_payload_length(values['payload_length'])
+    plot_payload_entropy(values['payload_entropy'])
 
     plt.show()
