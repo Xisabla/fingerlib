@@ -62,6 +62,34 @@ docker exec -u root -it <container name> bash
 $ chown -R root:root /out  # fix possible right issues
 $ tshark -w /out/pcap-oneshot.pcap -i eth0
 ```
+### Run DVWA server
+
+We also use [DVWA](https://dvwa.co.uk/) as test server to feed our dataset.
+
+The custom docker image also runs `tshark` in background to capture requests.
+
+First build the docker image:
+
+```bash
+cd dvwa
+docker build . -t fingerlib/dvwa
+```
+
+Then run it:
+
+```bash
+docker run -it -p 80:80 -v "$(pwd)/out:/out" fingerlib/dvwa
+```
+
+DVWA server will be running on http://127.0.0.1:80/, pcap files will be available under `out` directory.
+
+If you need more specifics captures, feel fire to run `docker exec` to enter the running container, write your output files to `/out` to get them the mounted volume, such as:
+
+```bash
+docker exec -u root -it <container name> bash
+$ chown -R root:root /out  # fix possible right issues
+$ tshark -w /out/pcap-oneshot.pcap -i eth0
+```
 
 ### Compute fingerprints
 
