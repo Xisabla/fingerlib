@@ -27,8 +27,16 @@ The library should be located in `out/` as `out/fingerlib.so`
 #include "include/finger/fingerprint.hpp"
 
 int main() {
+    std::string expected = /* ... */;
+    std::string uri = /* ... */;
+    std::string method = /* ... */;
+    std::string version = /* ... */;
+    std::vector<std::string> headers = { /* ... */, /* ... */ };
+
+    HTTPRequest req(uri, method, version, headers);
+
     // Computes and print the fingerprint
-    std::cout << fingerprint({ ... }) << std::endl;
+    std::cout << fingerprint(req) << std::endl;
 }
 ```
 
