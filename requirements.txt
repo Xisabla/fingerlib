@@ -3,3 +3,4 @@ hfinger
 matplotlib
 pandas
 pyshark
+scipy
