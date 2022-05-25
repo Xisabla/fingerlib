@@ -7,9 +7,11 @@ keywords = [
 
 def check_entry(entry):
     """Check for script tag in the entry's payload."""
-    payload = entry["request"]["payload"] + entry["request"]["raw"]
+    http = entry['request']['raw']
+    payload = entry["request"]["payload"]
 
-    return True in [keyword in payload for keyword in keywords]
+    return True in [keyword in http for keyword in keywords] \
+        or (len(payload) > 0 and [keyword in payload for keyword in keywords])
 
 
 def convert_filter(data):

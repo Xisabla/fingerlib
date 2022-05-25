@@ -18,8 +18,6 @@ def check_entry(entry):
     return True in [keyword in http for keyword in keywords] \
         or (len(payload) > 0 and [keyword in payload for keyword in keywords])
 
-    return True in [keyword in payload.upper() for keyword in keywords]
-
 
 def convert_filter(data):
     """Return all entries from pcap that contain a SQL request in the payload."""
