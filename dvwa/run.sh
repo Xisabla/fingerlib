@@ -5,11 +5,6 @@
 
 chown -R root:root /out
 
-#!/usr/bin/env bash
-# -*- coding: utf-8 -*-
-
-# fingerlib-dvwa entrypoint script
-
 # Run tshark
 tshark -w /out/capture.pcap -i eth0 & 
 

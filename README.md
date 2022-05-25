@@ -51,14 +51,14 @@ The custom docker image also runs `tshark` in background to capture requests
 First build the docker image:
 
 ```bash
-cd server
-docker build . -t fingerlib/server
+cd webgoat
+docker build . -t fingerlib/webgoat
 ```
 
 Then run it:
 
 ```bash
-docker run -it -p 8080:8080 -v "$(pwd)/out:/out" fingerlib/server
+docker run -it -p 8080:8080 -v "$(pwd)/out:/out" fingerlib/webgoat
 ```
 
 OWASP Goat server will be running on http://127.0.0.1:8080/WebGoat/, pcap files will be available under `out` directory.
@@ -70,6 +70,7 @@ docker exec -u root -it <container name> bash
 $ chown -R root:root /out  # fix possible right issues
 $ tshark -w /out/pcap-oneshot.pcap -i eth0
 ```
+
 ### Run DVWA server
 
 We also use [DVWA](https://dvwa.co.uk/) as test server to feed our dataset.
@@ -104,7 +105,7 @@ $ tshark -w /out/pcap-oneshot.pcap -i eth0
 **Once the capture is finished (container must be stopped)**, you can use the script `script/convert.py` to compute the fingerprints from your pcap.
 
 ```bash
-./script/convert.py ./server/out/capture.pcap -o out.json
+./script/convert.py ./webgoat/out/capture.pcap -o out.json
 ```
 
 It will keep trace of the request and parsed data from the pcap file for each entry.

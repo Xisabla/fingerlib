@@ -17,6 +17,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: "{{defaultContext}}:server"
+          context: "{{defaultContext}}:webgoat"
           push: false
-          tags: fingerlib/server:latest
+          tags: fingerlib/webgoat:latest
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: "{{defaultContext}}:dvwa"
+          push: false
+          tags: fingerlib/dvwa:latest
