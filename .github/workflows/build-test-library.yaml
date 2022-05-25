@@ -42,3 +42,21 @@ jobs:
           files: |
             out/fingerlib.so
         if: env.BRANCH == 'main'
+      - name: "Install doxygen"
+        run: sudo apt install -y doxygen
+      - name: "Run doxygen"
+        run: doxygen ./Doxyfile
+      - name: "Commit documentation"
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add . -f
+          git add doc/ -f
+          git commit -m "feat(doc): update documentation"
+      - name: Push doc on documentation
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: documentation
+          force: true
+        if: env.BRANCH == 'main'
