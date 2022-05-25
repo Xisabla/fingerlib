@@ -36,6 +36,7 @@ NUMERIC_FIELDS = [
     'payload_entropy'
 ]
 
+
 def read_data(file):
     """Read values from dataset
 
@@ -56,72 +57,75 @@ def read_data(file):
             fp = entry['fingerprint']['fingerprint']
             fi = 0
 
-            for v in fp.split('|'):  
+            for v in fp.split('|'):
                 field = FIELDS[fi]
 
                 if field in NUMERIC_FIELDS:
                     v = 0 if v == '' else float(v)
-                
+
                 values[field].append(v)
                 fi += 1
-    
+
         return values
 
 # Generic data transformations
+
 
 def transform_bars(entries):
     values = list(set(entries))
     values.sort()
 
-    dt = [ entries.count(v) for v in values ]
-    
+    dt = [entries.count(v) for v in values]
+
     return (dt, values)
 
 # Plot methods
+
 
 def plot_uri_length(entries, ax=None, bars=False):
     # Bars
     if bars:
         dt, values = transform_bars(entries)
-        df = pd.DataFrame({ 'labels': values, 'URI length': dt })
+        df = pd.DataFrame({'labels': values, 'URI length': dt})
 
         return df.plot.barh(x='labels', y='URI length',
-            xlabel='', ylabel='count',
-            title=f'URI length (total: {len(entries)})', ax=ax)
-    
+                            xlabel='', ylabel='count',
+                            title=f'URI length (total: {len(entries)})', ax=ax)
+
     # Density
     df = pd.DataFrame(entries)
     return df.plot.kde(title=f'URI length (total: {len(entries)})', ax=ax)
+
 
 def plot_uri_dir_count(entries, ax=None, bars=False):
     # Bars
     if bars:
         dt, values = transform_bars(entries)
-        df = pd.DataFrame({ 'labels': values, 'URI directory count': dt })
-
+        df = pd.DataFrame({'labels': values, 'URI directory count': dt})
 
         return df.plot.barh(x='labels', y='URI directory count',
-            xlabel='', ylabel='count',
-            title=f'URI directory count (total: {len(entries)})', ax=ax)
+                            xlabel='', ylabel='count',
+                            title=f'URI directory count (total: {len(entries)})', ax=ax)
 
     # Density
     df = pd.DataFrame(entries)
     return df.plot.kde(title=f'URI directory count (total: {len(entries)})', ax=ax)
 
+
 def plot_uri_dir_avg_size(entries, ax=None, bars=False):
     # Bars
     if bars:
         dt, values = transform_bars(entries)
-        df = pd.DataFrame({ 'labels': values, 'Directory average size': dt })
-
+        df = pd.DataFrame({'labels': values, 'Directory average size': dt})
 
         return df.plot.barh(x='labels', y='Directory average size',
-            xlabel='', ylabel='count',
-            title=f'Directory average size (total: {len(entries)})', ax=ax)
+                            xlabel='', ylabel='count',
+                            title=f'Directory average size (total: {len(entries)})', ax=ax)
 
     # Density
     df = pd.DataFrame(entries)
     df.plot.kde(title=f'Directory average size (total: {len(entries)})', ax=ax)
+
 
 def plot_uri_ext(entries, ax=None):
     dt, values = transform_bars(entries)
@@ -131,30 +135,35 @@ def plot_uri_ext(entries, ax=None):
     })
 
     return df.plot.bar(x='labels', y='Extensions',
-        xlabel='', ylabel='count',
-        title=f'Extensions (total: {len(entries)})', ax=ax)
+                       xlabel='', ylabel='count',
+                       title=f'Extensions (total: {len(entries)})', ax=ax)
+
 
 def plot_query_size(entries, ax=None):
     df = pd.DataFrame(entries)
     df.plot(kind='kde', title=f'Query size (total: {len(entries)})', ax=ax)
 
+
 def plot_query_avg_size(entries, ax=None):
     df = pd.DataFrame(entries)
     return df.plot(kind='kde', title=f'Query average size (total: {len(entries)})', ax=ax)
 
+
 def plot_http_method(entries, ax=None):
     dt, values = transform_bars(entries)
 
-    df = pd.DataFrame({ 'method': values, 'HTTP method': dt })
+    df = pd.DataFrame({'method': values, 'HTTP method': dt})
     return df.plot.bar(x='method', y='HTTP method',
-        title=f'HTTP method (total: {len(entries)})', ax=ax)
+                       title=f'HTTP method (total: {len(entries)})', ax=ax)
+
 
 def plot_http_version(entries, ax=None):
     dt, values = transform_bars(entries)
 
-    df = pd.DataFrame({ 'version': values, 'HTTP version': dt })
+    df = pd.DataFrame({'version': values, 'HTTP version': dt})
     return df.plot.bar(x='version', y='HTTP version',
-        title=f'HTTP version (total: {len(entries)})', ax=ax)
+                       title=f'HTTP version (total: {len(entries)})', ax=ax)
+
 
 def plot_headers(entries, ax=None):
     # Note: heavy method as each request might have a different values
@@ -165,22 +174,24 @@ def plot_headers(entries, ax=None):
             header = header.replace(':', '_')
             if not header in headers:
                 read_headers[header] = 0
-            
+
             read_headers[header] += 1
-    
+
     df = pd.DataFrame(read_headers, index=['count'])
     return df.plot.bar(title=f'Headers (total: {len(entries)})', ax=ax)
 
+
 def plot_all_headers(entries, ax=None):
     headers = [
-        header for headers in [ h.split(',') for h in entries ]
+        header for headers in [h.split(',') for h in entries]
         for header in headers
     ]
     dt, values = transform_bars(headers)
 
-    df = pd.DataFrame({ 'headers': values, 'Headers': dt })
+    df = pd.DataFrame({'headers': values, 'Headers': dt})
     return df.plot.barh(x='headers', y='Headers',
-        title=f'Headers', ax=ax)
+                        title=f'Headers', ax=ax)
+
 
 def plot_payload_flag(entries, ax=None):
     dt, values = transform_bars(entries)
@@ -190,26 +201,29 @@ def plot_payload_flag(entries, ax=None):
     })
 
     return df.plot.bar(x='labels', y='Payload flag',
-        xlabel='', ylabel='count',
-        title=f'Payload flags (total: {len(entries)})', ax=ax)
+                       xlabel='', ylabel='count',
+                       title=f'Payload flags (total: {len(entries)})', ax=ax)
+
 
 def plot_payload_length(entries, ax=None):
     df = pd.DataFrame(entries)
-    return df.plot.kde(title=f'Payload length (total: {len(entries)})' , ax=ax)
+    return df.plot.kde(title=f'Payload length (total: {len(entries)})', ax=ax)
+
 
 def plot_payload_entropy(entries, ax=None, bars=False):
     # Bars
     if bars:
         dt, values = transform_bars(entries)
-        df = pd.DataFrame({ 'labels': values, 'Payload entropy': dt })
+        df = pd.DataFrame({'labels': values, 'Payload entropy': dt})
 
         return df.plot.bar(x='labels', y='Payload entropy',
-            xlabel='', ylabel='count',
-            title=f'Payload entropy (total: {len(entries)})', ax=ax)
+                           xlabel='', ylabel='count',
+                           title=f'Payload entropy (total: {len(entries)})', ax=ax)
 
     # Density
     df = pd.DataFrame(entries)
     return df.plot.kde(title=f'Payload entropy (total: {len(entries)})', ax=ax)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2 or '-h' in sys.argv or '--help' in sys.argv:
@@ -218,7 +232,8 @@ if __name__ == "__main__":
 
     values = read_data(sys.argv[1])
 
-    print(f"NOTE: Don't forget to comment or uncomment relevant plots in {__file__} !")
+    print(
+        f"NOTE: Don't forget to comment or uncomment relevant plots in {__file__} !")
 
     # Plot
 

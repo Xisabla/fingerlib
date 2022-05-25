@@ -43,6 +43,7 @@ SCRIPT_DIR = path.join(path.dirname(path.realpath(__file__)))
 
 # Args
 
+
 def parse_arg_list(arg, default=None):
     """Parse argument list
 

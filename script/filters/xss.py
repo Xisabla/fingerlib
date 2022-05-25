@@ -5,6 +5,7 @@ keywords = [
     "<script>",
 ]
 
+
 def check_entry(entry):
     """Check for script tag in the entry's payload."""
     http = entry['request']['raw']
