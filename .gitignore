@@ -41,5 +41,7 @@ test/bin/*
 .vscode
 
 # Server
-server/out
-server/out*
+webgoat/out
+webgoat/out*
+dvwa/out
+dvwa/out*

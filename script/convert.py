@@ -4,7 +4,7 @@
 """Convert data from pcap to json format
 
 Usage:
-    convert.py <pcap> [--help] [-o <file>] [-b] [-c] [-F] [-f <filter>]
+    convert.py <pcap> [--help] [-o <file>] [-b] [-c] [-F] [-n] [-f <filter>]
         [-v] [--tags=<tags>]
     convert.py (-h | --help)
     convert.py --version
@@ -23,6 +23,7 @@ Options:
     -c --cpp            Format output for cpp tests.
     -b --beautify       If set, output will be indented with 4 spaces.
     -F --force          Erase existing files
+    -n --no-pcap        Do not keep trace of read pcap data, will save space.
     -f --filter=<filter[,filter2,filter3,...]>  Filter(s) to be used.
         Available filters: {{ filters }}
     --tags=<tags>       Tags to be added to each entry. Some filters add tag by default.
@@ -40,8 +41,8 @@ from filters.common import tag
 
 SCRIPT_DIR = path.join(path.dirname(path.realpath(__file__)))
 
-
 # Args
+
 
 def parse_arg_list(arg, default=None):
     """Parse argument list
@@ -182,7 +183,12 @@ def get_request(entry):
     frame_raw = entry["_source"]["layers"]["frame_raw"][0]
     delim = "0d0a0d0a" if "0d0a0d0a" in frame_raw else "0d0a"
     payload_raw = frame_raw[frame_raw.find(delim) + len(delim):]
-    payload = bytes.fromhex(payload_raw).decode()
+
+    # If can't read payload, use empty string
+    try:
+        payload = bytes.fromhex(payload_raw).decode()
+    except Exception:
+        payload = ""
 
     return {
         "raw": http_req_raw,
@@ -249,6 +255,7 @@ if __name__ == "__main__":
     beautify = args['--beautify'] or False
     mode = 'cpp' if args['--cpp'] else 'dataset'
     force = args['--force'] or False
+    no_pcap = args['--no-pcap'] or False
     verbose = args['--verbose'] or False
 
     # Check arguments
@@ -278,6 +285,7 @@ if __name__ == "__main__":
     data = [
         # Forge entry with full read data from pcap, parsed request with payload
         # and fingerprint from hfinger
+        {"request": get_request(p), "fingerprint": fp, "tags": []} if no_pcap else \
         {"pcap": p, "request": get_request(p), "fingerprint": fp, "tags": []}
         for p, fp in zip(pcap, fingerprints)
     ]
