@@ -1,3 +1,4 @@
+CC			= gcc
 CXX			= g++
 CFLAGS 		= -std=c++17 -fPIC -W -Wall -Wextra -g -ggdb
 REVISION	= $(shell git rev-parse --short HEAD | head -c 7)
@@ -34,7 +35,7 @@ TEST		= test
 TESTCOMMONS = $(TEST)/common/dataset.cpp
 TESTBIN		= $(TEST)/bin
 TESTS		= $(wildcard $(TEST)/*.cpp)
-TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS))
+TESTBINS	= $(patsubst $(TEST)/%.cpp, $(TESTBIN)/%, $(TESTS)) $(TEST)/bin/fingerprint_c
 
 # Recipes
 # > Release
@@ -63,6 +64,9 @@ $(OBJ)/%.o: $(SRC)/%.cpp $(OBJ)
 $(TEST)/bin/%: $(TEST)/%.cpp $(TESTCOMMONS) $(OUT)
 	@echo "CXX $<"
 	$(Q)$(CXX) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(TESTCOMMONS) $(OUT) $(LIBS) -o $@ -lCppUTest
+
+$(TEST)/bin/fingerprint_c: $(TEST)/fingerprint_c.c $(OUT)
+	$(Q)$(CC) $(INCLUDES) $(LIBDIRS) $(LIBS) $< $(OUT) $(LIBS) -o $@
 
 test: $(OUT) $(TESTBIN) $(TESTBINS)
 	@for test in $(TESTBINS);						\
