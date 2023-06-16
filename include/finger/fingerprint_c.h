@@ -2,7 +2,7 @@
  * @file fingerprint_c.h
  * @author Gautier Miquet
  * @brief Declaration of HTTP Fingerprinting method wrapper for C
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2023-06-16
  */
 
@@ -25,12 +25,25 @@ extern "C" {
  * @param payload Full string encoded payload
  *
  * @note This method allocates memory but does not clean it
- *  Do not forget to free the returned pointer to avoid memory
+ *  Do not forget to free the returned pointer to prevent memory
  *  leaks
  *
  * @return const char* The computed fingerprint
  */
 const char* fingerprint_c(const char* uri, const char* method, const char* version, const char** headers, int headers_count, const char* payload);
+
+
+/**
+ * @brief Computes the fingerprint from the URI, is part of the whole HTTP Request fingerprint
+ *
+ * @param uri Request URI
+ * @note This method allocates memory but does not clean it
+ *  Do not forget to free the returned pointer to prevent memory
+ *  leaks
+ *
+ * @return char* The computed URI fingerprint
+ */
+const char* uri_fingerprint_c(const char* uri);
 
 #ifdef __cplusplus
 }

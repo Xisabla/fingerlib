@@ -2,7 +2,7 @@
  * @file fingerprint.cpp
  * @author Gautier Miquet
  * @brief Implementation of HTTP Fingerprinting methods
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2022-03-03
  */
 #include <boost/algorithm/string.hpp>
@@ -629,6 +629,18 @@ const char* fingerprint_c(const char* uri,
 
     HTTPRequest req(uri_str, method_str, version_str, headers_vec, payload_str);
     std::string result_str = fingerprint(req);
+
+    const char* result = (const char*) malloc(sizeof(char) * (result_str.size() + 1));
+    std::strcpy((char*) result, result_str.c_str());
+
+    return result;
+}
+
+
+const char* uri_fingerprint_c(const char* uri) {
+    std::string uri_str(uri);
+
+    std::string result_str = uri_fingerprint(uri_str);
 
     const char* result = (const char*) malloc(sizeof(char) * (result_str.size() + 1));
     std::strcpy((char*) result, result_str.c_str());

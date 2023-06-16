@@ -2,7 +2,7 @@
  * @file basic.cpp
  * @author Gautier Miquet
  * @brief Very first and basic test
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2022-03-03
  */
 #include <finger/fingerprint.hpp>
@@ -95,6 +95,24 @@ TEST(Basic, FingerprintFullPayload) {
         auto fp = fingerprint(req);
 
         STRCMP_EQUAL(expected.c_str(), fp.c_str());
+    }
+}
+
+
+TEST(C, FingerprintURINoext) {
+    auto set = dataset_use("test/data/dataset_basic.json", { "sets", "uri-noext" });
+
+    for (auto& entry: set) {
+        if (!dataset_contains(entry, { "uri", "fingerprint" })) {
+            continue;
+        }
+
+        std::string expected = entry["fingerprint"].get<std::string>();
+        std::string uri = entry["uri"].get<std::string>();
+
+        const char *fp = uri_fingerprint_c(uri.c_str());
+
+        STRCMP_EQUAL(expected.c_str(), fp);
     }
 }
 
