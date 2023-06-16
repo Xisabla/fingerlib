@@ -6,8 +6,10 @@
  * @date 2022-03-03
  */
 #include <boost/algorithm/string.hpp>
+#include <cstdlib>
 #include <filesystem>
 #include <finger/fingerprint.hpp>
+#include <finger/fingerprint_c.h>
 #include <iomanip>
 #include <map>
 
@@ -601,4 +603,35 @@ std::string floatPrecision(const float& v, const int& p) {
     ss << std::fixed << std::setprecision(p) << v;
 
     return ss.str();
+}
+
+
+//--------------------------------------------------------------------------------------//
+//                                      C Wrapping                                      //
+//--------------------------------------------------------------------------------------//
+
+const char* fingerprint_c(const char* uri,
+                          const char* method,
+                          const char* version,
+                          const char** headers,
+                          int headers_count,
+                          const char* payload) {
+    std::string uri_str(uri);
+    std::string method_str(method);
+    std::string version_str(version);
+    std::string payload_str(payload);
+
+    std::vector<std::string> headers_vec;
+    headers_vec.reserve(headers_count);
+    for (int i = 0; i < headers_count; i++) {
+        headers_vec.push_back(std::string(headers[i]));
+    }
+
+    HTTPRequest req(uri_str, method_str, version_str, headers_vec, payload_str);
+    std::string result_str = fingerprint(req);
+
+    const char* result = (const char*) malloc(sizeof(char) * (result_str.size() + 1));
+    std::strcpy((char*) result, result_str.c_str());
+
+    return result;
 }
